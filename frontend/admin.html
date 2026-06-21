@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin | Shop Manager</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      background: linear-gradient(135deg,
+        #0a0e27 0%, #0d1b4b 25%,
+        #0a1628 50%, #0d2137 75%, #0a0e27 100%);
+      background-attachment: fixed;
+      color: #e2e8f0;
+    }
+    body::before {
+      content: ''; position: fixed;
+      top: -50%; left: -50%;
+      width: 200%; height: 200%;
+      background:
+        radial-gradient(circle at 20% 20%,
+          rgba(26,86,219,0.15) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%,
+          rgba(139,92,246,0.1) 0%, transparent 50%);
+      pointer-events: none; z-index: 0;
+    }
+    .navbar {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(10,14,39,0.7);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      padding: 0 30px; height: 65px;
+      display: flex; align-items: center;
+      justify-content: space-between;
+    }
+    .navbar .logo {
+      font-size: 20px; font-weight: 800;
+      background: linear-gradient(135deg, #60a5fa, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .navbar .logo span {
+      background: none;
+      -webkit-text-fill-color: rgba(255,255,255,0.5);
+      font-weight: 400; font-size: 16px;
+    }
+    .nav-links { display: flex; gap: 4px; }
+    .nav-links a {
+      color: rgba(255,255,255,0.6);
+      text-decoration: none; padding: 8px 16px;
+      border-radius: 8px; font-size: 14px;
+      font-weight: 500; transition: all 0.2s;
+    }
+    .nav-links a:hover {
+      background: rgba(255,255,255,0.08); color: white;
+    }
+    .nav-links a.active {
+      background: rgba(96,165,250,0.15); color: #60a5fa;
+      border: 1px solid rgba(96,165,250,0.3);
+    }
+    .page {
+      max-width: 1100px; margin: 0 auto;
+      padding: 30px 20px; position: relative; z-index: 1;
+    }
+    .page-header { margin-bottom: 24px; }
+    .page-header h1 {
+      font-size: 26px; font-weight: 800; color: white;
+    }
+    .page-header p {
+      color: rgba(255,255,255,0.45);
+      font-size: 14px; margin-top: 6px;
+    }
+    .section-divider {
+      display: flex; align-items: center;
+      gap: 16px; margin: 24px 0 16px;
+    }
+    .section-divider h2 {
+      font-size: 12px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 1.5px;
+      color: rgba(255,255,255,0.4); white-space: nowrap;
+    }
+    .section-divider::after {
+      content: ''; flex: 1; height: 1px;
+      background: linear-gradient(90deg,
+        rgba(96,165,250,0.5),
+        rgba(139,92,246,0.3), transparent);
+    }
+    /* Stats */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3,1fr);
+      gap: 14px; margin-bottom: 24px;
+    }
+    .stat-card {
+      background: rgba(255,255,255,0.05);
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.08);
+      padding: 18px 20px; position: relative;
+      overflow: hidden;
+    }
+    .stat-card::before {
+      content: ''; position: absolute;
+      top: 0; left: 0; right: 0; height: 3px;
+      background: var(--accent);
+      border-radius: 14px 14px 0 0;
+    }
+    .stat-card.gold   {
+      --accent: linear-gradient(90deg,#f59e0b,#fbbf24);
+    }
+    .stat-card.blue   {
+      --accent: linear-gradient(90deg,#3b82f6,#60a5fa);
+    }
+    .stat-card.purple {
+      --accent: linear-gradient(90deg,#8b5cf6,#a78bfa);
+    }
+    .s-label {
+      font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 1px;
+      color: rgba(255,255,255,0.4);
+    }
+    .s-value {
+      font-size: 28px; font-weight: 800;
+      color: white; margin-top: 6px;
+    }
+    /* Layout */
+    .layout {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 20px; align-items: start;
+    }
+    .glass-card {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(20px);
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+    .card-header {
+      padding: 18px 22px 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      display: flex; justify-content: space-between;
+      align-items: center;
+    }
+    .card-header h3 {
+      font-size: 15px; font-weight: 700; color: white;
+    }
+    .card-body { padding: 20px 22px; }
+    .form-group { margin-bottom: 15px; }
+    .form-group label {
+      display: block; font-size: 12px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.8px;
+      color: rgba(255,255,255,0.45); margin-bottom: 7px;
+    }
+    .form-group input,
+    .form-group select {
+      width: 100%; padding: 10px 14px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px; font-size: 14px;
+      color: white; outline: none; transition: all 0.2s;
+      font-family: 'Inter', sans-serif;
+    }
+    .form-group input::placeholder {
+      color: rgba(255,255,255,0.25);
+    }
+    .form-group input:focus,
+    .form-group select:focus {
+      border-color: rgba(96,165,250,0.5);
+      background: rgba(96,165,250,0.08);
+      box-shadow: 0 0 0 3px rgba(96,165,250,0.1);
+    }
+    .form-group select option {
+      background: #0d1b4b; color: white;
+    }
+    .role-info {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 10px; padding: 12px 14px;
+      margin-bottom: 16px; font-size: 12px;
+      color: rgba(255,255,255,0.45); line-height: 1.8;
+    }
+    .role-info strong { color: rgba(255,255,255,0.7); }
+    .btn-primary {
+      width: 100%; padding: 12px;
+      background: linear-gradient(135deg,#1a56db,#7c3aed);
+      color: white; border: none; border-radius: 10px;
+      font-size: 14px; font-weight: 700; cursor: pointer;
+      transition: all 0.3s; font-family: 'Inter', sans-serif;
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(26,86,219,0.4);
+    }
+    .alert {
+      padding: 11px 14px; border-radius: 10px;
+      font-size: 13px; margin-top: 12px; display: none;
+    }
+    .alert.success {
+      background: rgba(16,185,129,0.15); color: #34d399;
+      border: 1px solid rgba(16,185,129,0.3);
+    }
+    .alert.error {
+      background: rgba(239,68,68,0.15); color: #f87171;
+      border: 1px solid rgba(239,68,68,0.3);
+    }
+    /* Users Table */
+    .user-card {
+      display: flex; align-items: center; gap: 14px;
+      padding: 14px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .user-card:last-child { border-bottom: none; }
+    .user-avatar {
+      width: 44px; height: 44px; border-radius: 12px;
+      display: flex; align-items: center;
+      justify-content: center;
+      font-size: 18px; font-weight: 800;
+      color: white; flex-shrink: 0;
+      background: var(--av-bg);
+    }
+    .user-info { flex: 1; }
+    .user-name {
+      font-size: 14px; font-weight: 700; color: white;
+    }
+    .user-username {
+      font-size: 11px; color: rgba(255,255,255,0.4);
+      font-family: monospace; margin-top: 2px;
+    }
+    .role-badge {
+      display: inline-block; padding: 3px 10px;
+      border-radius: 20px; font-size: 10px;
+      font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.5px; margin-top: 4px;
+    }
+    .role-owner {
+      background: rgba(245,158,11,0.15);
+      color: #fbbf24;
+      border: 1px solid rgba(245,158,11,0.3);
+    }
+    .role-manager {
+      background: rgba(96,165,250,0.15);
+      color: #60a5fa;
+      border: 1px solid rgba(96,165,250,0.3);
+    }
+    .role-staff {
+      background: rgba(167,139,250,0.15);
+      color: #a78bfa;
+      border: 1px solid rgba(167,139,250,0.3);
+    }
+    .status-active {
+      display: inline-block; width: 8px; height: 8px;
+      border-radius: 50%; background: #34d399;
+      box-shadow: 0 0 6px #34d399;
+      margin-right: 4px;
+    }
+    .status-inactive {
+      display: inline-block; width: 8px; height: 8px;
+      border-radius: 50%; background: #f87171;
+      margin-right: 4px;
+    }
+    .last-login {
+      font-size: 10px; color: rgba(255,255,255,0.3);
+      margin-top: 2px;
+    }
+    .user-actions { display: flex; gap: 6px; }
+    .btn-edit-user {
+      padding: 5px 10px; border-radius: 6px;
+      background: rgba(96,165,250,0.15);
+      border: 1px solid rgba(96,165,250,0.3);
+      color: #60a5fa; font-size: 11px; font-weight: 700;
+      cursor: pointer; transition: all 0.2s;
+      font-family: 'Inter', sans-serif;
+    }
+    .btn-edit-user:hover {
+      background: rgba(96,165,250,0.3);
+    }
+    .btn-toggle-user {
+      padding: 5px 10px; border-radius: 6px;
+      background: rgba(245,158,11,0.15);
+      border: 1px solid rgba(245,158,11,0.3);
+      color: #fbbf24; font-size: 11px; font-weight: 700;
+      cursor: pointer; transition: all 0.2s;
+      font-family: 'Inter', sans-serif;
+    }
+    .btn-toggle-user:hover {
+      background: rgba(245,158,11,0.3);
+    }
+    .btn-del-user {
+      padding: 5px 10px; border-radius: 6px;
+      background: rgba(239,68,68,0.15);
+      border: 1px solid rgba(239,68,68,0.3);
+      color: #f87171; font-size: 11px; font-weight: 700;
+      cursor: pointer; transition: all 0.2s;
+      font-family: 'Inter', sans-serif;
+    }
+    .btn-del-user:hover {
+      background: rgba(239,68,68,0.3);
+    }
+    /* Modal */
+    .modal-overlay {
+      display: none; position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(4px);
+      z-index: 999; align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal {
+      background: #0d1b4b;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px; padding: 28px;
+      width: 400px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      position: relative;
+    }
+    .modal h3 {
+      font-size: 18px; font-weight: 700;
+      color: white; margin-bottom: 20px;
+    }
+    .modal-close {
+      position: absolute; top: 16px; right: 16px;
+      background: rgba(255,255,255,0.1);
+      border: none; color: white;
+      width: 30px; height: 30px;
+      border-radius: 50%; cursor: pointer;
+      font-size: 14px;
+    }
+    .modal-close:hover {
+      background: rgba(255,255,255,0.2);
+    }
+    .modal-btns {
+      display: flex; gap: 10px; margin-top: 20px;
+    }
+    .modal-btns button {
+      flex: 1; padding: 11px; border: none;
+      border-radius: 10px; font-size: 14px;
+      font-weight: 700; cursor: pointer;
+      font-family: 'Inter', sans-serif;
+    }
+    .btn-save {
+      background: linear-gradient(135deg,#1a56db,#7c3aed);
+      color: white;
+    }
+    .btn-cancel {
+      background: rgba(255,255,255,0.08);
+      color: rgba(255,255,255,0.7);
+    }
+    .empty-state {
+      text-align: center; padding: 40px;
+      color: rgba(255,255,255,0.25); font-size: 13px;
+    }
+    .empty-state .icon {
+      font-size: 36px; margin-bottom: 10px;
+    }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.15);
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="logo">
+      🏪 Shop Manager <span>| Admin Panel</span>
+    </div>
+    <div class="nav-links">
+      <a href="index.html">Dashboard</a>
+      <a href="products.html">Products</a>
+      <a href="sales.html">Daily Sales</a>
+      <a href="expenses.html">Expenses</a>
+      <a href="reports.html">📄 Reports</a>
+      <a href="billing.html">🛒 Billing</a>
+      <a href="admin.html" class="active">👥 Staff</a>
+    </div>
+  </nav>
+
+  <div class="page">
+    <div class="page-header">
+      <h1>👥 Staff Management</h1>
+      <p>Add and manage staff accounts —
+         Owner access only</p>
+    </div>
+
+    <!-- Stats -->
+    <div class="section-divider">
+      <h2>📊 Team Overview</h2>
+    </div>
+    <div class="stats-row">
+      <div class="stat-card gold">
+        <div class="s-label">👑 Owners</div>
+        <div class="s-value" id="count_owner">0</div>
+      </div>
+      <div class="stat-card blue">
+        <div class="s-label">🔧 Managers</div>
+        <div class="s-value" id="count_manager">0</div>
+      </div>
+      <div class="stat-card purple">
+        <div class="s-label">👤 Staff</div>
+        <div class="s-value" id="count_staff">0</div>
+      </div>
+    </div>
+
+    <!-- Layout -->
+    <div class="section-divider">
+      <h2>👤 Manage Accounts</h2>
+    </div>
+    <div class="layout">
+
+      <!-- Add User Form -->
+      <div class="glass-card">
+        <div class="card-header">
+          <h3>➕ Add New Account</h3>
+        </div>
+        <div class="card-body">
+          <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" id="new_fullname"
+              placeholder="e.g. Ahmed Ali"/>
+          </div>
+          <div class="form-group">
+            <label>Username</label>
+            <input type="text" id="new_username"
+              placeholder="e.g. ahmed123"
+              oninput="this.value =
+                this.value.toLowerCase()
+                .replace(/\s/g,'')"/>
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="new_password"
+              placeholder="Min 6 characters"/>
+          </div>
+          <div class="form-group">
+            <label>Role</label>
+            <select id="new_role"
+                    onchange="updateRoleInfo()">
+              <option value="staff">👤 Staff</option>
+              <option value="manager">🔧 Manager</option>
+              <option value="owner">👑 Owner</option>
+            </select>
+          </div>
+
+          <!-- Role Description -->
+          <div class="role-info" id="role_info">
+            <strong>👤 Staff Access:</strong><br/>
+            ✅ View Dashboard<br/>
+            ✅ Record Daily Sales<br/>
+            ✅ Create Bills<br/>
+            ❌ Cannot manage products<br/>
+            ❌ Cannot view expenses<br/>
+            ❌ Cannot download reports
+          </div>
+
+          <button class="btn-primary"
+                  onclick="createUser()">
+            Create Account
+          </button>
+          <div class="alert" id="create_alert"></div>
+        </div>
+      </div>
+
+      <!-- Users List -->
+      <div class="glass-card">
+        <div class="card-header">
+          <h3>👥 All Team Members</h3>
+          <span style="font-size:12px;
+               color:rgba(255,255,255,0.35);"
+               id="users_count">
+            Loading...
+          </span>
+        </div>
+        <div class="card-body">
+          <div id="users_list">
+            <div class="empty-state">
+              <div class="icon">👥</div>
+              <p>Loading team members...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Edit User Modal -->
+  <div class="modal-overlay" id="edit_modal">
+    <div class="modal">
+      <button class="modal-close"
+              onclick="closeModal()">✕</button>
+      <h3>✏️ Edit Account</h3>
+      <input type="hidden" id="edit_user_id"/>
+      <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" id="edit_fullname"/>
+      </div>
+      <div class="form-group">
+        <label>Role</label>
+        <select id="edit_role">
+          <option value="staff">👤 Staff</option>
+          <option value="manager">🔧 Manager</option>
+          <option value="owner">👑 Owner</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>New Password
+          <span style="color:rgba(255,255,255,0.3);
+               font-size:10px;font-weight:400;">
+            (leave blank to keep current)
+          </span>
+        </label>
+        <input type="password" id="edit_password"
+          placeholder="Leave blank to keep current"/>
+      </div>
+      <div class="modal-btns">
+        <button class="btn-save"
+                onclick="saveEdit()">
+          💾 Save Changes
+        </button>
+        <button class="btn-cancel"
+                onclick="closeModal()">
+          Cancel
+        </button>
+      </div>
+      <div class="alert" id="edit_alert"
+           style="margin-top:12px;"></div>
+    </div>
+  </div>
+
+  <script>
+    const API = 'http://localhost:5000';
+    function getHeaders() {
+  const token = localStorage.getItem('token') || '';
+  return {
+    'Content-Type' : 'application/json',
+    'X-Auth-Token' : token,
+    'Accept'       : 'application/json'
+  };
+}
+
+// Debug — check token exists
+const savedToken = localStorage.getItem('token');
+if (!savedToken) {
+  console.warn('⚠️ No token found in localStorage!');
+  window.location.href = 'login.html';
+}
+
+    // ── Role Info Text ──────────────────────
+    const roleDescriptions = {
+      staff: `<strong>👤 Staff Access:</strong><br/>
+        ✅ View Dashboard<br/>
+        ✅ Record Daily Sales<br/>
+        ✅ Create Bills<br/>
+        ❌ Cannot manage products<br/>
+        ❌ Cannot view expenses<br/>
+        ❌ Cannot download reports`,
+      manager: `<strong>🔧 Manager Access:</strong><br/>
+        ✅ View Dashboard<br/>
+        ✅ Manage Products<br/>
+        ✅ Record Sales & Expenses<br/>
+        ✅ Create Bills<br/>
+        ❌ Cannot download reports<br/>
+        ❌ Cannot manage staff`,
+      owner: `<strong>👑 Owner Access:</strong><br/>
+        ✅ Full access to everything<br/>
+        ✅ Manage all staff accounts<br/>
+        ✅ Download all reports<br/>
+        ✅ View all analytics<br/>
+        ✅ Complete system control`
+    };
+
+    function updateRoleInfo() {
+      const role = document.getElementById('new_role').value;
+      document.getElementById('role_info').innerHTML =
+        roleDescriptions[role];
+    }
+
+    // ── Load Users ──────────────────────────
+    async function loadUsers() {
+      try {
+        const res = await fetch(`${API}/api/auth/users`, {
+          headers: getHeaders()
+        });
+        const json = await res.json();
+
+        if (!json.success) {
+          document.getElementById('users_list').innerHTML = `
+            <div class="empty-state">
+              <div class="icon">⛔</div>
+              <p>${json.error}</p>
+            </div>`;
+          return;
+        }
+
+        const users = json.data;
+
+        // Update counts
+        document.getElementById('count_owner').textContent =
+          users.filter(u => u.role === 'owner').length;
+        document.getElementById('count_manager').textContent =
+          users.filter(u => u.role === 'manager').length;
+        document.getElementById('count_staff').textContent =
+          users.filter(u => u.role === 'staff').length;
+        document.getElementById('users_count').textContent =
+          `${users.length} member${users.length !== 1 ? 's' : ''}`;
+
+        if (!users.length) {
+          document.getElementById('users_list').innerHTML = `
+            <div class="empty-state">
+              <div class="icon">👥</div>
+              <p>No team members yet.</p>
+            </div>`;
+          return;
+        }
+
+        const currentUser = JSON.parse(
+          localStorage.getItem('user') || '{}'
+        );
+
+        document.getElementById('users_list').innerHTML =
+          users.map(u => {
+            const isMe = u.id === currentUser.id;
+            const avatarBg =
+              u.role === 'owner'
+                ? 'linear-gradient(135deg,#f59e0b,#d97706)'
+              : u.role === 'manager'
+                ? 'linear-gradient(135deg,#1a56db,#2563eb)'
+                : 'linear-gradient(135deg,#7c3aed,#6d28d9)';
+
+            const initial = u.full_name
+              .charAt(0).toUpperCase();
+
+            const lastLogin = u.last_login
+              ? `Last login: ${new Date(u.last_login)
+                  .toLocaleDateString()}`
+              : 'Never logged in';
+
+            return `
+              <div class="user-card">
+                <div class="user-avatar"
+                     style="--av-bg:${avatarBg};
+                            background:${avatarBg};">
+                  ${initial}
+                </div>
+                <div class="user-info">
+                  <div class="user-name">
+                    ${u.full_name}
+                    ${isMe ? '<span style="font-size:10px;color:#60a5fa;margin-left:6px;">(You)</span>' : ''}
+                  </div>
+                  <div class="user-username">
+                    @${u.username}
+                  </div>
+                  <span class="role-badge role-${u.role}">
+                    ${u.role === 'owner' ? '👑' :
+                      u.role === 'manager' ? '🔧' : '👤'}
+                    ${u.role}
+                  </span>
+                  <span style="margin-left:8px;">
+                    <span class="status-${u.is_active ?
+                      'active' : 'inactive'}"></span>
+                    <span style="font-size:10px;
+                         color:rgba(255,255,255,0.35);">
+                      ${u.is_active ? 'Active' : 'Inactive'}
+                    </span>
+                  </span>
+                  <div class="last-login">${lastLogin}</div>
+                </div>
+                <div class="user-actions">
+                  <button class="btn-edit-user"
+                    onclick="openEdit(${u.id},'${u.full_name}','${u.role}')">
+                    ✏️
+                  </button>
+                  ${!isMe ? `
+                  <button class="btn-toggle-user"
+                    onclick="toggleUser(${u.id},${u.is_active},'${u.full_name}')">
+                    ${u.is_active ? '🔒' : '🔓'}
+                  </button>
+                  <button class="btn-del-user"
+                    onclick="deleteUser(${u.id},'${u.full_name}')">
+                    🗑️
+                  </button>` : ''}
+                </div>
+              </div>`;
+          }).join('');
+
+      } catch(e) {
+        console.error(e);
+      }
+    }
+
+    // ── Create User ─────────────────────────
+    async function createUser() {
+      const fullname = document.getElementById(
+        'new_fullname').value.trim();
+      const username = document.getElementById(
+        'new_username').value.trim();
+      const password = document.getElementById(
+        'new_password').value;
+      const role     = document.getElementById(
+        'new_role').value;
+
+      if (!fullname || !username || !password) {
+        showAlert('create_alert',
+          'Please fill in all fields!', 'error');
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API}/api/auth/users`, {
+          method : 'POST',
+          headers: getHeaders(),
+          body   : JSON.stringify({
+            full_name: fullname, username,
+            password, role
+          })
+        });
+        const json = await res.json();
+
+        if (json.success) {
+          showAlert('create_alert',
+            `✅ ${json.message}`, 'success');
+          document.getElementById('new_fullname').value = '';
+          document.getElementById('new_username').value = '';
+          document.getElementById('new_password').value = '';
+          document.getElementById('new_role').value     = 'staff';
+          updateRoleInfo();
+          loadUsers();
+        } else {
+          showAlert('create_alert',
+            `❌ ${json.error}`, 'error');
+        }
+      } catch(e) {
+        showAlert('create_alert',
+          '❌ Cannot connect to server!', 'error');
+      }
+    }
+
+    // ── Toggle Active/Inactive ──────────────
+    async function toggleUser(id, isActive, name) {
+      const action = isActive ? 'deactivate' : 'activate';
+      if (!confirm(
+        `Are you sure you want to ${action} "${name}"?`
+      )) return;
+
+      try {
+        const res = await fetch(
+          `${API}/api/auth/users/${id}`, {
+          method : 'PUT',
+          headers: getHeaders(),
+          body   : JSON.stringify({ is_active: !isActive })
+        });
+        const json = await res.json();
+        if (json.success) loadUsers();
+        else alert(json.error);
+      } catch(e) {
+        alert('Cannot connect to server!');
+      }
+    }
+
+    // ── Delete User ─────────────────────────
+    async function deleteUser(id, name) {
+      if (!confirm(
+        `Permanently delete "${name}"? This cannot be undone!`
+      )) return;
+
+      try {
+        const res = await fetch(
+          `${API}/api/auth/users/${id}`, {
+          method : 'DELETE',
+          headers: getHeaders()
+        });
+        const json = await res.json();
+        if (json.success) {
+          loadUsers();
+        } else {
+          alert(json.error);
+        }
+      } catch(e) {
+        alert('Cannot connect to server!');
+      }
+    }
+
+    // ── Edit Modal ──────────────────────────
+    function openEdit(id, fullname, role) {
+      document.getElementById('edit_user_id').value  = id;
+      document.getElementById('edit_fullname').value = fullname;
+      document.getElementById('edit_role').value     = role;
+      document.getElementById('edit_password').value = '';
+      document.getElementById('edit_modal')
+        .classList.add('active');
+    }
+
+    async function saveEdit() {
+      const id       = document.getElementById(
+        'edit_user_id').value;
+      const fullname = document.getElementById(
+        'edit_fullname').value.trim();
+      const role     = document.getElementById(
+        'edit_role').value;
+      const password = document.getElementById(
+        'edit_password').value;
+
+      if (!fullname) {
+        showAlert('edit_alert',
+          'Full name is required!', 'error');
+        return;
+      }
+
+      const body = { full_name: fullname, role };
+      if (password) body.password = password;
+
+      try {
+        const res = await fetch(
+          `${API}/api/auth/users/${id}`, {
+          method : 'PUT',
+          headers: getHeaders(),
+          body   : JSON.stringify(body)
+        });
+        const json = await res.json();
+
+        if (json.success) {
+          closeModal();
+          loadUsers();
+        } else {
+          showAlert('edit_alert',
+            `❌ ${json.error}`, 'error');
+        }
+      } catch(e) {
+        showAlert('edit_alert',
+          '❌ Cannot connect to server!', 'error');
+      }
+    }
+
+    function closeModal() {
+      document.getElementById('edit_modal')
+        .classList.remove('active');
+    }
+
+    document.getElementById('edit_modal')
+      .addEventListener('click', function(e) {
+        if (e.target === this) closeModal();
+      });
+
+    // ── Alert Helper ────────────────────────
+    function showAlert(id, msg, type) {
+      const el         = document.getElementById(id);
+      el.textContent   = msg;
+      el.className     = `alert ${type}`;
+      el.style.display = 'block';
+      setTimeout(() => el.style.display = 'none', 4000);
+    }
+
+    loadUsers();
+  </script>
+<script src="error-handler.js"></script>
+  <script>
+    // ── Auth Guard ──────────────────────────
+    (function checkAuth() {
+      const userStr = localStorage.getItem('user');
+      if (!userStr) {
+        window.location.href = 'login.html';
+        return;
+      }
+      try {
+        const user = JSON.parse(userStr);
+        if (!user || !user.role) {
+          window.location.href = 'login.html';
+          return;
+        }
+        // Owner only page
+        if (user.role !== 'owner') {
+          alert('⛔ This page is for owners only!');
+          window.location.href = 'index.html';
+          return;
+        }
+        // Show user in navbar
+        const nav = document.querySelector('.nav-links');
+        if (nav) {
+          nav.insertAdjacentHTML('beforeend', `
+            <div style="display:flex;align-items:center;
+                 gap:10px;margin-left:12px;padding-left:12px;
+                 border-left:1px solid rgba(255,255,255,0.1);">
+              <div style="text-align:right;">
+                <div style="font-size:12px;font-weight:700;
+                     color:white;">
+                  👑 ${user.full_name}
+                </div>
+                <div style="font-size:10px;color:#fbbf24;
+                     text-transform:uppercase;
+                     letter-spacing:0.5px;font-weight:600;">
+                  owner
+                </div>
+              </div>
+              <button onclick="doLogout()" style="
+                padding:6px 14px;border-radius:8px;
+                background:rgba(239,68,68,0.15);
+                border:1px solid rgba(239,68,68,0.3);
+                color:#f87171;font-size:12px;font-weight:700;
+                cursor:pointer;font-family:'Inter',sans-serif;">
+                Logout
+              </button>
+            </div>`);
+        }
+      } catch(e) {
+        localStorage.clear();
+        window.location.href = 'login.html';
+      }
+    })();
+
+    async function doLogout() {
+      try {
+        await fetch('http://localhost:5000/api/auth/logout', {
+          method: 'POST', credentials: 'include'
+        });
+      } catch(e) {}
+      localStorage.clear();
+      window.location.href = 'login.html';
+    }
+  </script>
+
+</body>
+</html>

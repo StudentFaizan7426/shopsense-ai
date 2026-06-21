@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login | Shop Manager</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      background: linear-gradient(135deg,
+          #0a0e27 0%, #0d1b4b 25%,
+          #0a1628 50%, #0d2137 75%, #0a0e27 100%);
+      background-attachment: fixed;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #e2e8f0;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background:
+        radial-gradient(circle at 20% 20%,
+          rgba(26, 86, 219, 0.2) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%,
+          rgba(139, 92, 246, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 50% 50%,
+          rgba(6, 182, 212, 0.05) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .login-wrapper {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 420px;
+      padding: 20px;
+    }
+
+    /* ── Logo Section ── */
+    .logo-section {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .logo-icon {
+      width: 72px;
+      height: 72px;
+      background: linear-gradient(135deg, #1a56db, #7c3aed);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      margin: 0 auto 16px;
+      box-shadow: 0 8px 32px rgba(26, 86, 219, 0.4);
+    }
+
+    .logo-title {
+      font-size: 26px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #60a5fa, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.5px;
+    }
+
+    .logo-subtitle {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.4);
+      margin-top: 6px;
+    }
+
+    /* ── Login Card ── */
+    .login-card {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+      padding: 36px 32px;
+    }
+
+    .login-card h2 {
+      font-size: 20px;
+      font-weight: 800;
+      color: white;
+      margin-bottom: 6px;
+    }
+
+    .login-card p {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.4);
+      margin-bottom: 28px;
+    }
+
+    /* ── Form ── */
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: rgba(255, 255, 255, 0.45);
+      margin-bottom: 8px;
+    }
+
+    .input-wrap {
+      position: relative;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 16px;
+      pointer-events: none;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px 14px 12px 42px;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      font-size: 14px;
+      color: white;
+      outline: none;
+      transition: all 0.2s;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .form-group input::placeholder {
+      color: rgba(255, 255, 255, 0.25);
+    }
+
+    .form-group input:focus {
+      border-color: rgba(96, 165, 250, 0.6);
+      background: rgba(96, 165, 250, 0.08);
+      box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.12);
+    }
+
+    /* Password toggle */
+    .toggle-pass {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: rgba(255, 255, 255, 0.3);
+      cursor: pointer;
+      font-size: 16px;
+      padding: 0;
+      transition: color 0.2s;
+    }
+
+    .toggle-pass:hover {
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    /* ── Login Button ── */
+    .btn-login {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #1a56db, #7c3aed);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-family: 'Inter', sans-serif;
+      letter-spacing: 0.3px;
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-login:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(26, 86, 219, 0.5);
+    }
+
+    .btn-login:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* ── Error/Success Alert ── */
+    .alert {
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      margin-top: 16px;
+      display: none;
+      line-height: 1.5;
+    }
+
+    .alert.error {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .alert.success {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    /* ── Credentials hint ── */
+    .hint-box {
+      background: rgba(96, 165, 250, 0.06);
+      border: 1px solid rgba(96, 165, 250, 0.15);
+      border-radius: 10px;
+      padding: 12px 16px;
+      margin-top: 20px;
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.4);
+      line-height: 1.8;
+    }
+
+    .hint-box strong {
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    /* ── Footer ── */
+    .login-footer {
+      text-align: center;
+      margin-top: 24px;
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.25);
+    }
+
+    /* ── Loading spinner ── */
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    ::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 4px;
+    }
+
+    /* ── Mobile Responsive ── */
+    @media (max-width: 480px) {
+      .login-wrapper {
+        padding: 16px;
+      }
+
+      .logo-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 30px;
+        border-radius: 16px;
+      }
+
+      .logo-title {
+        font-size: 22px;
+      }
+
+      .logo-subtitle {
+        font-size: 12px;
+      }
+
+      .logo-section {
+        margin-bottom: 24px;
+      }
+
+      .login-card {
+        padding: 28px 22px;
+        border-radius: 16px;
+      }
+
+      .login-card h2 {
+        font-size: 18px;
+      }
+
+      .login-card p {
+        font-size: 12px;
+        margin-bottom: 22px;
+      }
+
+      .form-group input {
+        padding: 11px 14px 11px 40px;
+        font-size: 13px;
+      }
+
+      .btn-login {
+        padding: 13px;
+        font-size: 14px;
+      }
+
+      .hint-box {
+        padding: 10px 14px;
+        font-size: 11px;
+      }
+    }
+
+    @media (max-width: 360px) {
+      .login-wrapper {
+        padding: 12px;
+      }
+
+      .login-card {
+        padding: 24px 18px;
+      }
+
+      .logo-title {
+        font-size: 20px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="login-wrapper">
+
+    <!-- Logo -->
+    <div class="logo-section">
+      <div class="logo-icon">🏪</div>
+      <div class="logo-title">Shop Manager</div>
+      <div class="logo-subtitle">
+        AI-Powered Business Management System
+      </div>
+    </div>
+
+    <!-- Login Card -->
+    <div class="login-card">
+      <h2>Welcome Back 👋</h2>
+      <p>Sign in to access your shop dashboard</p>
+
+      <div class="form-group">
+        <label>Username</label>
+        <div class="input-wrap">
+          <span class="input-icon">👤</span>
+          <input type="text" id="username" placeholder="Enter your username" autocomplete="username"
+            onkeypress="handleKey(event)" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Password</label>
+        <div class="input-wrap">
+          <span class="input-icon">🔒</span>
+          <input type="password" id="password" placeholder="Enter your password" autocomplete="current-password"
+            onkeypress="handleKey(event)" />
+          <button class="toggle-pass" onclick="togglePassword()" type="button">
+            👁️
+          </button>
+        </div>
+      </div>
+
+      <button class="btn-login" id="login_btn" onclick="doLogin()">
+        <div class="spinner" id="spinner"></div>
+        <span id="btn_text">Sign In</span>
+      </button>
+
+      <div class="alert" id="alert_msg"></div>
+
+      <!-- Default credentials hint -->
+      <div class="hint-box">
+        <strong>Default Owner Account:</strong><br />
+        Username: <strong>admin</strong> &nbsp;|&nbsp;
+        Password: <strong>shop@2026</strong>
+      </div>
+    </div>
+
+    <div class="login-footer">
+      Shop Manager System &nbsp;•&nbsp; 2026
+    </div>
+
+  </div>
+
+  <script>
+    const API = 'http://192.168.100.13:5000';
+
+    // ── Toggle password visibility ──
+    function togglePassword() {
+      const input = document.getElementById('password');
+      input.type = input.type === 'password' ? 'text' : 'password';
+    }
+
+    // ── Handle Enter key ──
+    function handleKey(e) {
+      if (e.key === 'Enter') doLogin();
+    }
+
+    // ── Check if already logged in ──
+    function checkAlreadyLoggedIn() {
+      const userStr = localStorage.getItem('user');
+      if (userStr) {
+        try {
+          const user = JSON.parse(userStr);
+          if (user && user.role) {
+            window.location.href = 'index.html';
+          }
+        } catch (e) {
+          localStorage.clear();
+        }
+      }
+    }
+
+    // ── Do Login ──
+    async function doLogin() {
+      const username = document.getElementById('username')
+        .value.trim();
+      const password = document.getElementById('password')
+        .value;
+
+      if (!username || !password) {
+        showAlert('Please enter username and password!', 'error');
+        return;
+      }
+
+      // Show loading
+      const btn = document.getElementById('login_btn');
+      const spinner = document.getElementById('spinner');
+      const btnText = document.getElementById('btn_text');
+
+      btn.disabled = true;
+      spinner.style.display = 'block';
+      btnText.textContent = 'Signing in...';
+
+      try {
+        const res = await fetch(`${API}/api/auth/login`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({ username, password })
+        });
+
+        const json = await res.json();
+
+        if (json.success) {
+          // Save user info to localStorage
+          localStorage.setItem('user', JSON.stringify(json.user));
+          localStorage.setItem('role', json.user.role);
+          localStorage.setItem('full_name', json.user.full_name);
+          localStorage.setItem('token', json.token);
+
+          showAlert(`✅ ${json.message}`, 'success');
+
+          // Redirect based on role
+          setTimeout(() => {
+            window.location.href = 'index.html';
+          }, 1000);
+
+        } else {
+          showAlert(json.error, 'error');
+        }
+
+      } catch (e) {
+        showAlert('❌ Cannot connect to server!', 'error');
+      } finally {
+        btn.disabled = false;
+        spinner.style.display = 'none';
+        btnText.textContent = 'Sign In';
+      }
+    }
+
+    function showAlert(msg, type) {
+      const el = document.getElementById('alert_msg');
+      el.textContent = msg;
+      el.className = `alert ${type}`;
+      el.style.display = 'block';
+    }
+
+    // Check login status on page load
+    checkAlreadyLoggedIn();
+
+    // Auto-focus username field
+    document.getElementById('username').focus();
+  </script>
+</body>
+
+</html>

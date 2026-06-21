@@ -1,0 +1,1352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Billing | Shop Manager</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      background: linear-gradient(135deg,
+        #0a0e27 0%, #0d1b4b 25%,
+        #0a1628 50%, #0d2137 75%, #0a0e27 100%);
+      background-attachment: fixed;
+      color: #e2e8f0;
+    }
+    body::before {
+      content: ''; position: fixed;
+      top: -50%; left: -50%;
+      width: 200%; height: 200%;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(26,86,219,0.15) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(139,92,246,0.1) 0%, transparent 50%);
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ── Navbar ── */
+    .navbar {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(10,14,39,0.7);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      padding: 0 30px; height: 65px;
+      display: flex; align-items: center;
+      justify-content: space-between;
+    }
+    .navbar .logo {
+      font-size: 20px; font-weight: 800;
+      background: linear-gradient(135deg, #60a5fa, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .navbar .logo span {
+      background: none;
+      -webkit-text-fill-color: rgba(255,255,255,0.5);
+      font-weight: 400; font-size: 16px;
+    }
+    .nav-links { display: flex; gap: 4px; }
+    .nav-links a {
+      color: rgba(255,255,255,0.6);
+      text-decoration: none; padding: 8px 16px;
+      border-radius: 8px; font-size: 14px;
+      font-weight: 500; transition: all 0.2s;
+    }
+    .nav-links a:hover { background: rgba(255,255,255,0.08); color: white; }
+    .nav-links a.active {
+      background: rgba(96,165,250,0.15); color: #60a5fa;
+      border: 1px solid rgba(96,165,250,0.3);
+    }
+
+    /* ── Page ── */
+    .page {
+      max-width: 1200px; margin: 0 auto;
+      padding: 30px 20px; position: relative; z-index: 1;
+    }
+    .page-header { margin-bottom: 24px; }
+    .page-header h1 { font-size: 26px; font-weight: 800; color: white; }
+    .page-header p { color: rgba(255,255,255,0.45); font-size: 14px; margin-top: 6px; }
+
+    .section-divider {
+      display: flex; align-items: center;
+      gap: 16px; margin: 24px 0 16px;
+    }
+    .section-divider h2 {
+      font-size: 12px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 1.5px;
+      color: rgba(255,255,255,0.4); white-space: nowrap;
+    }
+    .section-divider::after {
+      content: ''; flex: 1; height: 1px;
+      background: linear-gradient(90deg,
+        rgba(96,165,250,0.5), rgba(139,92,246,0.3), transparent);
+    }
+
+    /* ── Summary Cards ── */
+    .summary-row {
+      display: grid; grid-template-columns: repeat(3,1fr);
+      gap: 14px; margin-bottom: 24px;
+    }
+    .summary-card {
+      background: rgba(255,255,255,0.05);
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.08);
+      padding: 18px 20px; position: relative; overflow: hidden;
+    }
+    .summary-card::before {
+      content: ''; position: absolute;
+      top: 0; left: 0; right: 0; height: 3px;
+      background: var(--accent);
+      border-radius: 14px 14px 0 0;
+    }
+    .summary-card.blue  { --accent: linear-gradient(90deg,#3b82f6,#60a5fa); }
+    .summary-card.green { --accent: linear-gradient(90deg,#10b981,#34d399); }
+    .summary-card.purple{ --accent: linear-gradient(90deg,#8b5cf6,#a78bfa); }
+    .s-label {
+      font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 1px;
+      color: rgba(255,255,255,0.4);
+    }
+    .s-value { font-size: 24px; font-weight: 800; color: white; margin-top: 6px; }
+
+    /* ── Main Layout ── */
+    .billing-layout {
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      gap: 20px; align-items: start;
+    }
+
+    /* ── Glass Card ── */
+    .glass-card {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(20px);
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+    .card-header {
+      padding: 18px 22px 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      display: flex; justify-content: space-between;
+      align-items: center;
+    }
+    .card-header h3 { font-size: 15px; font-weight: 700; color: white; }
+    .card-body { padding: 20px 22px; }
+
+    /* ── Form ── */
+    .form-group { margin-bottom: 14px; }
+    .form-group label {
+      display: block; font-size: 12px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.8px;
+      color: rgba(255,255,255,0.45); margin-bottom: 7px;
+    }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%; padding: 10px 14px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px; font-size: 14px;
+      color: white; outline: none; transition: all 0.2s;
+      font-family: 'Inter', sans-serif;
+    }
+    .form-group input::placeholder { color: rgba(255,255,255,0.25); }
+    .form-group input:focus,
+    .form-group select:focus {
+      border-color: rgba(96,165,250,0.5);
+      background: rgba(96,165,250,0.08);
+      box-shadow: 0 0 0 3px rgba(96,165,250,0.1);
+    }
+    .form-group select option { background: #0d1b4b; color: white; }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    /* ── Add to Cart Button ── */
+    .btn-add-cart {
+      width: 100%; padding: 12px;
+      background: linear-gradient(135deg,#10b981,#059669);
+      color: white; border: none; border-radius: 10px;
+      font-size: 14px; font-weight: 700; cursor: pointer;
+      transition: all 0.3s; font-family: 'Inter', sans-serif;
+      display: flex; align-items: center;
+      justify-content: center; gap: 8px;
+    }
+    .btn-add-cart:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(16,185,129,0.4);
+    }
+
+    /* ── Item Preview ── */
+    .item-preview {
+      background: rgba(16,185,129,0.08);
+      border: 1px solid rgba(16,185,129,0.2);
+      border-radius: 10px; padding: 12px 16px;
+      margin-bottom: 14px;
+      display: flex; justify-content: space-between;
+      align-items: center;
+    }
+    .item-preview span { font-size: 13px; color: rgba(255,255,255,0.5); }
+    .item-preview strong { font-size: 18px; font-weight: 800; color: #34d399; }
+
+    /* ── Cart Items ── */
+    .cart-empty {
+      text-align: center; padding: 40px 20px;
+      color: rgba(255,255,255,0.25); font-size: 13px;
+    }
+    .cart-empty .icon { font-size: 40px; margin-bottom: 10px; }
+
+    .cart-item {
+      display: flex; align-items: center;
+      gap: 12px; padding: 12px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .cart-item:last-child { border-bottom: none; }
+
+    .cart-item-num {
+      width: 24px; height: 24px;
+      background: rgba(96,165,250,0.15);
+      border: 1px solid rgba(96,165,250,0.3);
+      border-radius: 50%; display: flex;
+      align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700;
+      color: #60a5fa; flex-shrink: 0;
+    }
+
+    .cart-item-info { flex: 1; }
+    .cart-item-name {
+      font-size: 13px; font-weight: 600; color: white;
+    }
+    .cart-item-meta {
+      font-size: 11px; color: rgba(255,255,255,0.4);
+      margin-top: 2px;
+    }
+
+    .cart-item-price {
+      font-size: 14px; font-weight: 700;
+      color: #34d399; text-align: right;
+    }
+    .cart-item-profit {
+      font-size: 10px; color: rgba(52,211,153,0.6);
+      text-align: right; margin-top: 2px;
+    }
+
+    .btn-remove-item {
+      background: rgba(239,68,68,0.15);
+      border: 1px solid rgba(239,68,68,0.3);
+      color: #f87171; width: 26px; height: 26px;
+      border-radius: 6px; cursor: pointer;
+      font-size: 12px; flex-shrink: 0;
+      display: flex; align-items: center;
+      justify-content: center; transition: all 0.2s;
+    }
+    .btn-remove-item:hover { background: rgba(239,68,68,0.3); }
+
+    /* ── Cart Total ── */
+    .cart-total {
+      border-top: 1px solid rgba(255,255,255,0.08);
+      padding-top: 14px; margin-top: 4px;
+    }
+    .cart-total-row {
+      display: flex; justify-content: space-between;
+      align-items: center; margin-bottom: 8px;
+    }
+    .cart-total-label { font-size: 12px; color: rgba(255,255,255,0.45); }
+    .cart-total-val   { font-size: 14px; font-weight: 700; color: white; }
+    .cart-grand-total {
+      display: flex; justify-content: space-between;
+      align-items: center;
+      background: rgba(96,165,250,0.08);
+      border: 1px solid rgba(96,165,250,0.2);
+      border-radius: 10px; padding: 12px 16px;
+      margin: 12px 0;
+    }
+    .cart-grand-label {
+      font-size: 14px; font-weight: 700; color: white;
+    }
+    .cart-grand-val {
+      font-size: 22px; font-weight: 800; color: #60a5fa;
+    }
+
+    /* ── Action Buttons ── */
+    .cart-actions { display: flex; gap: 10px; margin-top: 4px; }
+    .btn-clear {
+      flex: 1; padding: 11px;
+      background: rgba(239,68,68,0.15);
+      color: #f87171;
+      border: 1px solid rgba(239,68,68,0.3);
+      border-radius: 10px; font-size: 13px;
+      font-weight: 700; cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.2s;
+    }
+    .btn-clear:hover { background: rgba(239,68,68,0.3); }
+
+    .btn-checkout {
+      flex: 2; padding: 11px;
+      background: linear-gradient(135deg,#1a56db,#7c3aed);
+      color: white; border: none;
+      border-radius: 10px; font-size: 14px;
+      font-weight: 700; cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.3s;
+      display: flex; align-items: center;
+      justify-content: center; gap: 6px;
+    }
+    .btn-checkout:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(26,86,219,0.4);
+    }
+    .btn-checkout:disabled {
+      opacity: 0.5; cursor: not-allowed; transform: none;
+    }
+
+    /* ── Alert ── */
+    .alert {
+      padding: 11px 14px; border-radius: 10px;
+      font-size: 13px; margin-top: 12px; display: none;
+    }
+    .alert.success {
+      background: rgba(16,185,129,0.15); color: #34d399;
+      border: 1px solid rgba(16,185,129,0.3);
+    }
+    .alert.error {
+      background: rgba(239,68,68,0.15); color: #f87171;
+      border: 1px solid rgba(239,68,68,0.3);
+    }
+    .alert.warning {
+      background: rgba(245,158,11,0.15); color: #fbbf24;
+      border: 1px solid rgba(245,158,11,0.3);
+    }
+
+    /* ── Bills History Table ── */
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead tr { background: rgba(255,255,255,0.04); }
+    thead th {
+      padding: 11px 12px; text-align: left;
+      font-size: 11px; font-weight: 700;
+      color: rgba(255,255,255,0.4);
+      text-transform: uppercase; letter-spacing: 0.8px;
+    }
+    tbody tr {
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      transition: background 0.15s;
+    }
+    tbody tr:hover { background: rgba(255,255,255,0.03); }
+    tbody td { padding: 11px 12px; color: rgba(255,255,255,0.8); }
+
+    .bill-num {
+      font-family: monospace; font-weight: 700;
+      color: #60a5fa; font-size: 12px;
+    }
+    .profit-cell { color: #34d399; font-weight: 700; }
+
+    .btn-view-bill {
+      padding: 5px 10px;
+      background: rgba(96,165,250,0.15);
+      border: 1px solid rgba(96,165,250,0.3);
+      color: #60a5fa; border-radius: 6px;
+      font-size: 11px; font-weight: 700;
+      cursor: pointer; transition: all 0.2s;
+      font-family: 'Inter', sans-serif;
+    }
+    .btn-view-bill:hover { background: rgba(96,165,250,0.3); }
+
+    .btn-print-bill {
+      padding: 5px 10px;
+      background: rgba(16,185,129,0.15);
+      border: 1px solid rgba(16,185,129,0.3);
+      color: #34d399; border-radius: 6px;
+      font-size: 11px; font-weight: 700;
+      cursor: pointer; transition: all 0.2s;
+      font-family: 'Inter', sans-serif;
+      margin-left: 5px;
+    }
+    .btn-print-bill:hover { background: rgba(16,185,129,0.3); }
+
+    /* ── Bill Detail Modal ── */
+    .modal-overlay {
+      display: none; position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(4px);
+      z-index: 999; align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal {
+      background: #0d1b4b;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 18px; padding: 28px;
+      width: 480px; max-height: 85vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      position: relative;
+    }
+    .modal-close {
+      position: absolute; top: 16px; right: 16px;
+      background: rgba(255,255,255,0.1);
+      border: none; color: white;
+      width: 30px; height: 30px;
+      border-radius: 50%; cursor: pointer; font-size: 14px;
+    }
+    .modal-close:hover { background: rgba(255,255,255,0.2); }
+
+    .bill-modal-header {
+      text-align: center; margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .bill-modal-title {
+      font-size: 20px; font-weight: 800; color: white;
+    }
+    .bill-modal-num {
+      font-size: 13px; color: #60a5fa;
+      font-family: monospace; margin-top: 4px;
+    }
+    .bill-modal-date {
+      font-size: 12px; color: rgba(255,255,255,0.4);
+      margin-top: 3px;
+    }
+
+    .bill-item-row {
+      display: flex; justify-content: space-between;
+      align-items: center; padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .bill-item-row:last-child { border-bottom: none; }
+
+    .bill-item-name {
+      font-size: 13px; font-weight: 600; color: white;
+    }
+    .bill-item-qty {
+      font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 2px;
+    }
+    .bill-item-total {
+      font-size: 14px; font-weight: 700; color: #34d399;
+    }
+
+    .bill-summary-box {
+      background: rgba(255,255,255,0.04);
+      border-radius: 10px; padding: 14px 16px;
+      margin-top: 16px;
+    }
+    .bill-summary-row {
+      display: flex; justify-content: space-between;
+      margin-bottom: 8px; font-size: 13px;
+    }
+    .bill-summary-row:last-child { margin-bottom: 0; }
+    .bill-summary-label { color: rgba(255,255,255,0.5); }
+    .bill-summary-val   { font-weight: 700; color: white; }
+
+    .btn-print-modal {
+      width: 100%; padding: 12px; margin-top: 16px;
+      background: linear-gradient(135deg,#1a56db,#7c3aed);
+      color: white; border: none; border-radius: 10px;
+      font-size: 14px; font-weight: 700; cursor: pointer;
+      font-family: 'Inter', sans-serif; transition: all 0.3s;
+    }
+    .btn-print-modal:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(26,86,219,0.4);
+    }
+
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.15); border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="logo">🏪 Shop Manager <span>| Micro Business</span></div>
+    <div class="nav-links">
+      <a href="index.html">Dashboard</a>
+      <a href="products.html">Products</a>
+      <a href="sales.html">Daily Sales</a>
+      <a href="expenses.html">Expenses</a>
+      <a href="reports.html">📄 Reports</a>
+      <a href="billing.html" class="active">🛒 Billing</a>
+      <a href="admin.html">👥 Staff</a>
+    </div>
+  </nav>
+
+  <div class="page">
+    <div class="page-header">
+      <h1>🛒 Billing</h1>
+      <p>Add multiple items to cart and generate a single customer bill</p>
+    </div>
+
+    <!-- Today's Summary -->
+    <div class="section-divider"><h2>📊 Today's Billing Summary</h2></div>
+    <div class="summary-row">
+      <div class="summary-card blue">
+        <div class="s-label">Bills Generated Today</div>
+        <div class="s-value" id="total_bills">0</div>
+      </div>
+      <div class="summary-card green">
+        <div class="s-label">Today's Revenue</div>
+        <div class="s-value" id="today_revenue">Rs. 0</div>
+      </div>
+      <div class="summary-card purple">
+        <div class="s-label">Today's Profit</div>
+        <div class="s-value" id="today_profit">Rs. 0</div>
+      </div>
+    </div>
+
+    <!-- Billing Layout -->
+    <div class="section-divider"><h2>🛒 New Bill</h2></div>
+    <div class="billing-layout">
+
+      <!-- LEFT — Add Items Form -->
+      <div>
+        <!-- Add Item Card -->
+        <div class="glass-card" style="margin-bottom:16px;">
+          <div class="card-header">
+            <h3>➕ Add Item to Cart</h3>
+          </div>
+          <div class="card-body">
+            <div class="form-group">
+              <label>Search Product</label>
+              <input type="text" id="product_search"
+                placeholder="🔍 Type to search..."
+                oninput="filterProducts()" autocomplete="off"/>
+            </div>
+            <div class="form-group">
+              <label>Select Product</label>
+              <select id="product_select" onchange="onProductSelect()">
+                <option value="">-- Choose a product --</option>
+              </select>
+              <div id="search_info"
+                style="font-size:11px;margin-top:4px;
+                       color:rgba(255,255,255,0.4);display:none;">
+              </div>
+            </div>
+            <div class="two-col">
+              <div class="form-group">
+                <label>Quantity</label>
+                <input type="number" id="item_qty"
+                  placeholder="e.g. 3" min="1"
+                  oninput="updateItemPreview()"/>
+              </div>
+              <div class="form-group">
+                <label>Price Per Unit (Rs.)</label>
+                <input type="number" id="item_price"
+                  placeholder="Auto-filled"
+                  oninput="updateItemPreview()"/>
+              </div>
+            </div>
+
+            <!-- Item Total Preview -->
+            <div class="item-preview">
+              <span>Item total:</span>
+              <strong id="item_total_preview">Rs. 0</strong>
+            </div>
+
+            <button class="btn-add-cart" onclick="addToCart()">
+              ➕ Add to Cart
+            </button>
+            <div class="alert" id="add_alert"></div>
+          </div>
+        </div>
+
+        <!-- Notes Card -->
+        <div class="glass-card">
+          <div class="card-header">
+            <h3>📝 Bill Notes</h3>
+          </div>
+          <div class="card-body">
+            <div class="form-group" style="margin-bottom:0;">
+              <input type="text" id="bill_notes"
+                placeholder="e.g. Regular customer, credit sale..."/>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT — Cart -->
+      <div class="glass-card">
+        <div class="card-header">
+          <h3>🛒 Current Cart</h3>
+          <span id="cart_count"
+            style="font-size:12px;
+                   color:rgba(255,255,255,0.4);">
+            0 items
+          </span>
+        </div>
+        <div class="card-body">
+
+          <!-- Cart Items List -->
+          <div id="cart_items">
+            <div class="cart-empty">
+              <div class="icon">🛒</div>
+              <p>Cart is empty.<br/>Add products from the left!</p>
+            </div>
+          </div>
+
+          <!-- Cart Total (hidden when empty) -->
+          <div id="cart_total_section" style="display:none;">
+            <div class="cart-total">
+              <div class="cart-total-row">
+                <span class="cart-total-label">Subtotal</span>
+                <span class="cart-total-val"
+                      id="cart_subtotal">Rs. 0</span>
+              </div>
+              <div class="cart-total-row">
+                <span class="cart-total-label">Items in cart</span>
+                <span class="cart-total-val"
+                      id="cart_items_count">0 products</span>
+              </div>
+              <div class="cart-grand-total">
+                <span class="cart-grand-label">Total Bill Amount</span>
+                <span class="cart-grand-val"
+                      id="cart_grand_total">Rs. 0</span>
+              </div>
+              <div class="cart-actions">
+                <button class="btn-clear" onclick="clearCart()">
+                  🗑️ Clear
+                </button>
+                <button class="btn-checkout"
+                        id="checkout_btn"
+                        onclick="checkout()">
+                  ✅ Checkout &amp; Generate Bill
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="alert" id="checkout_alert"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Bills History -->
+    <div class="section-divider"><h2>📋 Today's Bills</h2></div>
+    <div class="glass-card">
+      <div class="card-header">
+        <h3>📋 Bills History</h3>
+        <div style="display:flex;gap:8px;">
+          <button onclick="loadBills('today')" style="
+            padding:5px 12px;border-radius:7px;
+            background:rgba(96,165,250,0.15);
+            border:1px solid rgba(96,165,250,0.3);
+            color:#60a5fa;font-size:11px;font-weight:700;
+            cursor:pointer;font-family:'Inter',sans-serif;">
+            Today
+          </button>
+          <button onclick="loadBills('all')" style="
+            padding:5px 12px;border-radius:7px;
+            background:rgba(255,255,255,0.06);
+            border:1px solid rgba(255,255,255,0.1);
+            color:rgba(255,255,255,0.6);font-size:11px;
+            font-weight:700;cursor:pointer;
+            font-family:'Inter',sans-serif;">
+            All Bills
+          </button>
+        </div>
+      </div>
+      <div class="card-body" style="padding:0;">
+        <div id="bills_container">
+          <div class="cart-empty">
+            <div class="icon">📋</div>
+            <p>No bills generated today yet.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bill Detail Modal -->
+  <div class="modal-overlay" id="bill_modal">
+    <div class="modal">
+      <button class="modal-close"
+              onclick="closeModal()">✕</button>
+      <div class="bill-modal-header">
+        <div class="bill-modal-title">🏪 Shop Manager</div>
+        <div class="bill-modal-num" id="modal_bill_num"></div>
+        <div class="bill-modal-date" id="modal_bill_date"></div>
+      </div>
+      <div id="modal_items"></div>
+      <div class="bill-summary-box" id="modal_summary"></div>
+      <button class="btn-print-modal"
+              id="modal_print_btn"
+              onclick="printCurrentBill()">
+        🖨️ Download Receipt PDF
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const API = 'http://localhost:5000';
+    const { jsPDF } = window.jspdf;
+
+    // ── State ──────────────────────────────────────
+    let allProducts   = [];
+    let cart          = [];
+    let currentBillId = null;
+
+    // ── Load Products ──────────────────────────────
+    async function loadProducts() {
+      try {
+        const res  = await fetch(`${API}/api/products`);
+        const json = await res.json();
+        allProducts = json.data || [];
+        renderProductDropdown(allProducts);
+      } catch(e) {
+        console.error('Cannot load products', e);
+      }
+    }
+
+    function renderProductDropdown(list) {
+      const sel = document.getElementById('product_select');
+      sel.innerHTML = '<option value="">-- Choose a product --</option>';
+      list.forEach(p => {
+        const low   = p.current_stock <= p.reorder_level;
+        const stock = low
+          ? `⚠️ Low: ${p.current_stock}`
+          : `Stock: ${p.current_stock}`;
+        sel.innerHTML += `
+          <option value="${p.id}"
+            data-price="${p.selling_price}"
+            data-cost="${p.purchase_price}"
+            data-stock="${p.current_stock}"
+            data-name="${p.name}">
+            ${p.name} (${stock})
+          </option>`;
+      });
+    }
+
+    function filterProducts() {
+      const q      = document.getElementById('product_search')
+                       .value.toLowerCase().trim();
+      const info   = document.getElementById('search_info');
+
+      if (!q) {
+        renderProductDropdown(allProducts);
+        info.style.display = 'none';
+        return;
+      }
+
+      const filtered = allProducts.filter(p =>
+        p.name.toLowerCase().includes(q) ||
+        p.category.toLowerCase().includes(q)
+      );
+
+      renderProductDropdown(filtered);
+      info.style.display = 'block';
+      info.textContent   = filtered.length > 0
+        ? `✅ Found ${filtered.length} product(s)`
+        : `❌ No products match "${q}"`;
+      info.style.color   = filtered.length > 0
+        ? '#34d399' : '#f87171';
+
+      if (filtered.length === 1) {
+        document.getElementById('product_select').value =
+          filtered[0].id;
+        onProductSelect();
+      }
+    }
+
+    function onProductSelect() {
+      const sel    = document.getElementById('product_select');
+      const option = sel.options[sel.selectedIndex];
+      if (!option.value) return;
+      document.getElementById('item_price').value =
+        option.getAttribute('data-price');
+      document.getElementById('item_qty').focus();
+      updateItemPreview();
+    }
+
+    function updateItemPreview() {
+      const qty   = parseFloat(
+        document.getElementById('item_qty').value) || 0;
+      const price = parseFloat(
+        document.getElementById('item_price').value) || 0;
+      document.getElementById('item_total_preview')
+        .textContent = `Rs. ${(qty * price).toFixed(2)}`;
+    }
+
+    // ── Cart Operations ────────────────────────────
+    function addToCart() {
+      const sel      = document.getElementById('product_select');
+      const option   = sel.options[sel.selectedIndex];
+      const qty      = parseInt(
+        document.getElementById('item_qty').value);
+      const price    = parseFloat(
+        document.getElementById('item_price').value);
+
+      if (!option.value) {
+        showAlert('add_alert', 'Please select a product!', 'error');
+        return;
+      }
+      if (!qty || qty < 1) {
+        showAlert('add_alert', 'Please enter a valid quantity!', 'error');
+        return;
+      }
+      if (!price || price < 1) {
+        showAlert('add_alert', 'Please enter a valid price!', 'error');
+        return;
+      }
+
+      const stock = parseInt(option.getAttribute('data-stock'));
+
+      // Check if already in cart
+      const existing = cart.find(
+        item => item.product_id == option.value
+      );
+      const alreadyQty = existing ? existing.quantity : 0;
+
+      if (alreadyQty + qty > stock) {
+        showAlert('add_alert',
+          `Not enough stock! Available: ${stock}, ` +
+          `Already in cart: ${alreadyQty}`, 'error');
+        return;
+      }
+
+      if (existing) {
+        // Update existing item
+        existing.quantity   += qty;
+        existing.total_price = parseFloat(
+          (existing.unit_price * existing.quantity).toFixed(2)
+        );
+        showAlert('add_alert',
+          `Updated ${existing.name} quantity to ${existing.quantity}`,
+          'success');
+      } else {
+        // Add new item
+        cart.push({
+          product_id  : parseInt(option.value),
+          name        : option.getAttribute('data-name'),
+          quantity    : qty,
+          unit_price  : price,
+          unit_cost   : parseFloat(option.getAttribute('data-cost')),
+          total_price : parseFloat((price * qty).toFixed(2)),
+        });
+        showAlert('add_alert',
+          `✅ ${option.getAttribute('data-name')} added to cart!`,
+          'success');
+      }
+
+      // Reset form
+      sel.value = '';
+      document.getElementById('product_search').value = '';
+      document.getElementById('item_qty').value       = '';
+      document.getElementById('item_price').value     = '';
+      document.getElementById('item_total_preview')
+        .textContent = 'Rs. 0';
+      document.getElementById('search_info')
+        .style.display = 'none';
+      renderProductDropdown(allProducts);
+
+      renderCart();
+    }
+
+    function removeFromCart(index) {
+      cart.splice(index, 1);
+      renderCart();
+    }
+
+    function clearCart() {
+      cart = [];
+      renderCart();
+    }
+
+    function renderCart() {
+      const container = document.getElementById('cart_items');
+      const totalSec  = document.getElementById('cart_total_section');
+      const countEl   = document.getElementById('cart_count');
+
+      if (cart.length === 0) {
+        container.innerHTML = `
+          <div class="cart-empty">
+            <div class="icon">🛒</div>
+            <p>Cart is empty.<br/>Add products from the left!</p>
+          </div>`;
+        totalSec.style.display = 'none';
+        countEl.textContent    = '0 items';
+        return;
+      }
+
+      const grandTotal = cart.reduce(
+        (s, item) => s + item.total_price, 0
+      );
+      const totalProfit = cart.reduce(
+        (s, item) => s +
+          (item.unit_price - item.unit_cost) * item.quantity, 0
+      );
+
+      container.innerHTML = cart.map((item, i) => `
+        <div class="cart-item">
+          <div class="cart-item-num">${i + 1}</div>
+          <div class="cart-item-info">
+            <div class="cart-item-name">${item.name}</div>
+            <div class="cart-item-meta">
+              ${item.quantity} × Rs. ${item.unit_price} per unit
+            </div>
+          </div>
+          <div>
+            <div class="cart-item-price">
+              Rs. ${item.total_price.toFixed(2)}
+            </div>
+            <div class="cart-item-profit">
+              +Rs. ${((item.unit_price - item.unit_cost) *
+                item.quantity).toFixed(2)} profit
+            </div>
+          </div>
+          <button class="btn-remove-item"
+                  onclick="removeFromCart(${i})">✕</button>
+        </div>`).join('');
+
+      document.getElementById('cart_subtotal').textContent =
+        `Rs. ${grandTotal.toFixed(2)}`;
+      document.getElementById('cart_items_count').textContent =
+        `${cart.length} product${cart.length > 1 ? 's' : ''}`;
+      document.getElementById('cart_grand_total').textContent =
+        `Rs. ${grandTotal.toFixed(2)}`;
+
+      countEl.textContent    = `${cart.length} item${cart.length > 1 ? 's' : ''}`;
+      totalSec.style.display = 'block';
+    }
+
+    // ── Checkout ───────────────────────────────────
+    async function checkout() {
+      if (cart.length === 0) {
+        showAlert('checkout_alert', 'Cart is empty!', 'error');
+        return;
+      }
+
+      const btn   = document.getElementById('checkout_btn');
+      btn.disabled = true;
+      btn.textContent = '⏳ Processing...';
+
+      try {
+        const res = await fetch(`${API}/api/billing/checkout`, {
+          method : 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body   : JSON.stringify({
+            items: cart.map(item => ({
+              product_id : item.product_id,
+              quantity   : item.quantity,
+              unit_price : item.unit_price,
+            })),
+            notes: document.getElementById('bill_notes').value
+          })
+        });
+
+        const json = await res.json();
+
+        if (json.success) {
+          showAlert('checkout_alert',
+            `✅ ${json.message} | Total: Rs. ${json.total}`,
+            'success');
+
+          // Show warnings if any
+          if (json.warnings && json.warnings.length) {
+            setTimeout(() => {
+              showAlert('checkout_alert',
+                json.warnings.join(' | '), 'warning');
+            }, 2500);
+          }
+
+          // Clear cart
+          cart = [];
+          renderCart();
+          document.getElementById('bill_notes').value = '';
+
+          // Reload bills and summary
+          loadBills('today');
+          loadSummary();
+          loadProducts(); // Refresh stock levels
+
+          // Auto-open the bill receipt
+          setTimeout(() => viewBill(json.bill_id), 1000);
+
+        } else {
+          showAlert('checkout_alert', `❌ ${json.error}`, 'error');
+        }
+
+      } catch(e) {
+        showAlert('checkout_alert',
+          '❌ Cannot connect to server!', 'error');
+      } finally {
+        btn.disabled    = false;
+        btn.innerHTML   =
+          '✅ Checkout &amp; Generate Bill';
+      }
+    }
+
+    // ── Load Bills ─────────────────────────────────
+    async function loadBills(period = 'today') {
+      try {
+        const res  = await fetch(
+          `${API}/api/billing/bills?period=${period}`
+        );
+        const json = await res.json();
+        const data = json.data || [];
+
+        if (!data.length) {
+          document.getElementById('bills_container')
+            .innerHTML = `
+            <div class="cart-empty">
+              <div class="icon">📋</div>
+              <p>No bills ${period === 'today' ?
+                'generated today' : 'found'} yet.</p>
+            </div>`;
+          return;
+        }
+
+        const rows = data.map(bill => `
+          <tr>
+            <td><span class="bill-num">
+              ${bill.bill_number}
+            </span></td>
+            <td>${bill.date}</td>
+            <td>${bill.items.length} item${bill.items.length > 1 ? 's' : ''}</td>
+            <td style="color:#60a5fa;font-weight:700;">
+              Rs. ${bill.total_amount}
+            </td>
+            <td class="profit-cell">Rs. ${bill.total_profit}</td>
+            <td>
+              <button class="btn-view-bill"
+                      onclick="viewBill(${bill.id})">
+                👁️ View
+              </button>
+              <button class="btn-print-bill"
+                      onclick="printBill(${bill.id})">
+                🖨️ PDF
+              </button>
+            </td>
+          </tr>`).join('');
+
+        document.getElementById('bills_container').innerHTML = `
+          <table>
+            <thead>
+              <tr>
+                <th>Bill No.</th>
+                <th>Date</th>
+                <th>Items</th>
+                <th>Total</th>
+                <th>Profit</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>`;
+      } catch(e) {
+        console.error(e);
+      }
+    }
+
+    // ── Load Summary ───────────────────────────────
+    async function loadSummary() {
+      try {
+        const res  = await fetch(`${API}/api/billing/bills?period=today`);
+        const json = await res.json();
+        if (!json.success) return;
+        const s = json.summary;
+        document.getElementById('total_bills').textContent =
+          s.total_bills;
+        document.getElementById('today_revenue').textContent =
+          `Rs. ${s.total_revenue}`;
+        document.getElementById('today_profit').textContent =
+          `Rs. ${s.total_profit}`;
+      } catch(e) { console.error(e); }
+    }
+
+    // ── View Bill Modal ────────────────────────────
+    async function viewBill(billId) {
+      try {
+        const res  = await fetch(`${API}/api/billing/bills/${billId}`);
+        const json = await res.json();
+        if (!json.success) return;
+
+        const bill = json.data;
+        currentBillId = billId;
+
+        document.getElementById('modal_bill_num').textContent =
+          bill.bill_number;
+        document.getElementById('modal_bill_date').textContent =
+          `Date: ${bill.date}` +
+          (bill.notes ? ` | Note: ${bill.notes}` : '');
+
+        document.getElementById('modal_items').innerHTML =
+          bill.items.map(item => `
+            <div class="bill-item-row">
+              <div>
+                <div class="bill-item-name">${item.product_name}</div>
+                <div class="bill-item-qty">
+                  ${item.quantity} × Rs. ${item.unit_price}
+                </div>
+              </div>
+              <div class="bill-item-total">
+                Rs. ${item.total_price}
+              </div>
+            </div>`).join('');
+
+        document.getElementById('modal_summary').innerHTML = `
+          <div class="bill-summary-row">
+            <span class="bill-summary-label">Total Amount</span>
+            <span class="bill-summary-val" style="color:#60a5fa;">
+              Rs. ${bill.total_amount}
+            </span>
+          </div>
+          <div class="bill-summary-row">
+            <span class="bill-summary-label">Cost of Goods</span>
+            <span class="bill-summary-val">
+              Rs. ${bill.total_cost}
+            </span>
+          </div>
+          <div class="bill-summary-row">
+            <span class="bill-summary-label">Profit</span>
+            <span class="bill-summary-val" style="color:#34d399;">
+              Rs. ${bill.total_profit}
+            </span>
+          </div>`;
+
+        document.getElementById('bill_modal')
+          .classList.add('active');
+
+      } catch(e) { console.error(e); }
+    }
+
+    function closeModal() {
+      document.getElementById('bill_modal')
+        .classList.remove('active');
+      currentBillId = null;
+    }
+
+    // Close on overlay click
+    document.getElementById('bill_modal')
+      .addEventListener('click', function(e) {
+        if (e.target === this) closeModal();
+      });
+
+    // ── Print/PDF Bill ─────────────────────────────
+    async function printBill(billId) {
+      try {
+        const res  = await fetch(`${API}/api/billing/bills/${billId}`);
+        const json = await res.json();
+        if (!json.success) return;
+        generateBillPDF(json.data);
+      } catch(e) { console.error(e); }
+    }
+
+    function printCurrentBill() {
+      if (currentBillId) printBill(currentBillId);
+    }
+
+    function generateBillPDF(bill) {
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: [80, 200]  // Receipt size (80mm wide)
+      });
+
+      const W = doc.internal.pageSize.getWidth();
+      let y   = 0;
+
+      // Header
+      doc.setFillColor(26, 86, 219);
+      doc.rect(0, 0, W, 22, 'F');
+      doc.setTextColor(255,255,255);
+      doc.setFontSize(12);
+      doc.setFont('helvetica','bold');
+      doc.text('SHOP MANAGER', W/2, 8, { align:'center' });
+      doc.setFontSize(8);
+      doc.setFont('helvetica','normal');
+      doc.text('Micro-Business Management System', W/2, 13, { align:'center' });
+      doc.text(bill.bill_number, W/2, 18, { align:'center' });
+      y = 26;
+
+      // Date & Info
+      doc.setTextColor(80,80,80);
+      doc.setFontSize(7.5);
+      doc.text(`Date: ${bill.date}`, 4, y);
+      if (bill.notes) {
+        y += 4;
+        doc.text(`Note: ${bill.notes}`, 4, y);
+      }
+      y += 5;
+
+      // Divider
+      doc.setDrawColor(200,200,200);
+      doc.line(4, y, W-4, y);
+      y += 4;
+
+      // Items
+      doc.setTextColor(0,0,0);
+      bill.items.forEach(item => {
+        doc.setFont('helvetica','bold');
+        doc.setFontSize(8);
+        doc.text(item.product_name, 4, y);
+        doc.setFont('helvetica','normal');
+        doc.setFontSize(7.5);
+        doc.setTextColor(80,80,80);
+        y += 4;
+        doc.text(
+          `${item.quantity} x Rs.${item.unit_price}`,
+          6, y
+        );
+        doc.setTextColor(0,0,0);
+        doc.setFont('helvetica','bold');
+        doc.text(
+          `Rs. ${item.total_price}`,
+          W-4, y, { align:'right' }
+        );
+        doc.setFont('helvetica','normal');
+        doc.setTextColor(80,80,80);
+        y += 6;
+      });
+
+      // Divider
+      doc.setDrawColor(200,200,200);
+      doc.line(4, y, W-4, y);
+      y += 5;
+
+      // Total
+      doc.setTextColor(0,0,0);
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(10);
+      doc.text('TOTAL:', 4, y);
+      doc.setTextColor(26,86,219);
+      doc.text(
+        `Rs. ${bill.total_amount}`,
+        W-4, y, { align:'right' }
+      );
+      y += 8;
+
+      // Footer
+      doc.setDrawColor(200,200,200);
+      doc.line(4, y, W-4, y);
+      y += 5;
+      doc.setFontSize(7);
+      doc.setFont('helvetica','normal');
+      doc.setTextColor(120,120,120);
+      doc.text('Thank you for your purchase!', W/2, y, { align:'center' });
+      y += 4;
+      doc.text('Powered by Mr Raven', W/2, y, { align:'center' });
+
+      doc.save(`Receipt_${bill.bill_number}.pdf`);
+    }
+
+    // ── Alert Helper ───────────────────────────────
+    function showAlert(id, msg, type) {
+      const el       = document.getElementById(id);
+      el.textContent = msg;
+      el.className   = `alert ${type}`;
+      el.style.display = 'block';
+      setTimeout(() => el.style.display = 'none', 4000);
+    }
+
+    // ── Init ───────────────────────────────────────
+    loadProducts();
+    loadBills('today');
+    loadSummary();
+  </script>
+  <script src="error-handler.js"></script>
+<script>
+  // ── Auth Guard ──────────────────────────
+  (function checkAuth() {
+    const userStr = localStorage.getItem('user');
+    if (!userStr) {
+      window.location.href = 'login.html';
+      return;
+    }
+
+    try {
+      const user = JSON.parse(userStr);
+      if (!user || !user.role) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      // ── Role-based page access ──
+      const page        = window.location.pathname
+                            .split('/').pop();
+      const staffOnly   = ['index.html','sales.html',
+                            'billing.html'];
+      const managerUp   = ['products.html',
+                            'expenses.html'];
+      const ownerOnly   = ['reports.html'];
+
+      if (ownerOnly.includes(page) &&
+          user.role !== 'owner') {
+        alert('⛔ This page is for owners only!');
+        window.location.href = 'index.html';
+        return;
+      }
+
+      if (managerUp.includes(page) &&
+          user.role === 'staff') {
+        alert('⛔ You do not have access to this page!');
+        window.location.href = 'index.html';
+        return;
+      }
+
+      // ── Show user info in navbar ──
+      const nav = document.querySelector('.nav-links');
+      if (nav) {
+        const roleBadge =
+          user.role === 'owner'   ? '👑' :
+          user.role === 'manager' ? '🔧' : '👤';
+
+        const roleColor =
+          user.role === 'owner'   ? '#fbbf24' :
+          user.role === 'manager' ? '#60a5fa' : '#a78bfa';
+
+        nav.insertAdjacentHTML('beforeend', `
+          <div style="display:flex;align-items:center;
+               gap:10px;margin-left:12px;padding-left:12px;
+               border-left:1px solid rgba(255,255,255,0.1);">
+            <div style="text-align:right;">
+              <div style="font-size:12px;font-weight:700;
+                   color:white;">
+                ${roleBadge} ${user.full_name}
+              </div>
+              <div style="font-size:10px;
+                   color:${roleColor};
+                   text-transform:uppercase;
+                   letter-spacing:0.5px;
+                   font-weight:600;">
+                ${user.role}
+              </div>
+            </div>
+            <button onclick="doLogout()" style="
+              padding:6px 14px;border-radius:8px;
+              background:rgba(239,68,68,0.15);
+              border:1px solid rgba(239,68,68,0.3);
+              color:#f87171;font-size:12px;
+              font-weight:700;cursor:pointer;
+              font-family:'Inter',sans-serif;
+              transition:all 0.2s;">
+              Logout
+            </button>
+          </div>`);
+      }
+
+    } catch(e) {
+      localStorage.clear();
+      window.location.href = 'login.html';
+    }
+  })();
+
+  async function doLogout() {
+    try {
+      const token = localStorage.getItem('token');
+      await fetch('http://localhost:5000/api/auth/logout', {
+        method : 'POST',
+        headers: { 'X-Auth-Token': token || '' }
+      });
+    } catch(e) {}
+    localStorage.clear();
+    window.location.href = 'login.html';
+  }
+</script>

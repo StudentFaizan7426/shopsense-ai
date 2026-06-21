@@ -1,0 +1,1958 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard | Shop Manager</title>
+  <script src="error-handler.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      background: linear-gradient(135deg,
+        #0a0e27 0%,
+        #0d1b4b 25%,
+        #0a1628 50%,
+        #0d2137 75%,
+        #0a0e27 100%);
+      background-attachment: fixed;
+      color: #e2e8f0;
+    }
+
+    /* Animated background orbs */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background:
+        radial-gradient(circle at 20% 20%,
+          rgba(26,86,219,0.15) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%,
+          rgba(139,92,246,0.1) 0%, transparent 50%),
+        radial-gradient(circle at 50% 50%,
+          rgba(6,182,212,0.05) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Navbar ── */
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10, 14, 39, 0.7);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      padding: 0 30px;
+      height: 65px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .navbar .logo {
+      color: white;
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #60a5fa, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .navbar .logo span {
+      background: none;
+      -webkit-text-fill-color: rgba(255,255,255,0.5);
+      font-weight: 400;
+      font-size: 16px;
+    }
+
+    .nav-links { display: flex; gap: 4px; }
+
+    .nav-links a {
+      color: rgba(255,255,255,0.6);
+      text-decoration: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .nav-links a:hover {
+      background: rgba(255,255,255,0.08);
+      color: white;
+    }
+
+    .nav-links a.active {
+      background: rgba(96,165,250,0.15);
+      color: #60a5fa;
+      border: 1px solid rgba(96,165,250,0.3);
+    }
+
+    /* ── Page ── */
+    .page {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 30px 20px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── Glass Card ── */
+    .glass-card {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow:
+        0 8px 32px rgba(0,0,0,0.3),
+        inset 0 1px 0 rgba(255,255,255,0.1);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .glass-card:hover {
+      transform: translateY(-2px);
+      box-shadow:
+        0 12px 40px rgba(0,0,0,0.4),
+        inset 0 1px 0 rgba(255,255,255,0.15);
+    }
+
+    /* ── Section Divider ── */
+    .section-divider {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin: 32px 0 20px;
+    }
+
+    .section-divider h2 {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: rgba(255,255,255,0.5);
+      white-space: nowrap;
+    }
+
+    .section-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg,
+        rgba(96,165,250,0.5),
+        rgba(139,92,246,0.3),
+        transparent);
+    }
+
+    /* ── Welcome Banner ── */
+    .welcome-banner {
+      background: linear-gradient(135deg,
+        rgba(26,86,219,0.4) 0%,
+        rgba(139,92,246,0.3) 100%);
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      border: 1px solid rgba(96,165,250,0.2);
+      padding: 32px 36px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 8px 32px rgba(26,86,219,0.2);
+    }
+
+    .welcome-banner h1 {
+      font-size: 24px;
+      font-weight: 800;
+      color: white;
+      letter-spacing: -0.5px;
+    }
+
+    .welcome-banner p {
+      color: rgba(255,255,255,0.65);
+      font-size: 14px;
+      margin-top: 6px;
+    }
+
+    .date-badge {
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      padding: 10px 20px;
+      border-radius: 25px;
+      font-size: 13px;
+      font-weight: 600;
+      color: white;
+      white-space: nowrap;
+    }
+
+    /* ── KPI Grid ── */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 8px;
+    }
+
+    .kpi-card {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(20px);
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.08);
+      padding: 22px;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--accent, linear-gradient(90deg, #3b82f6, #60a5fa));
+      border-radius: 16px 16px 0 0;
+    }
+
+    .kpi-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+    }
+
+    .kpi-card.blue   { --accent: linear-gradient(90deg, #3b82f6, #60a5fa); }
+    .kpi-card.green  { --accent: linear-gradient(90deg, #10b981, #34d399); }
+    .kpi-card.purple { --accent: linear-gradient(90deg, #8b5cf6, #a78bfa); }
+    .kpi-card.red    { --accent: linear-gradient(90deg, #ef4444, #f87171); }
+
+    .kpi-icon  { font-size: 28px; margin-bottom: 12px; }
+
+    .kpi-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: rgba(255,255,255,0.45);
+    }
+
+    .kpi-value {
+      font-size: 26px;
+      font-weight: 800;
+      color: white;
+      margin-top: 6px;
+      letter-spacing: -0.5px;
+    }
+
+    .kpi-sub {
+      font-size: 11px;
+      color: rgba(255,255,255,0.35);
+      margin-top: 4px;
+    }
+
+    /* ── Net Profit Card ── */
+    .net-profit-card {
+      background: linear-gradient(135deg,
+        rgba(16,185,129,0.2) 0%,
+        rgba(5,150,105,0.1) 100%);
+      border: 1px solid rgba(16,185,129,0.3);
+      border-radius: 16px;
+      padding: 24px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    /* ── Two Column ── */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 8px;
+    }
+
+    /* ── Card Header ── */
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .card-header h3 {
+      font-size: 14px;
+      font-weight: 700;
+      color: white;
+    }
+
+    .card-header a {
+      font-size: 12px;
+      color: #60a5fa;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .card-body { padding: 16px 24px 20px; }
+
+    /* ── Product Items ── */
+    .product-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .product-item:last-child { border-bottom: none; }
+
+    .product-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: white;
+    }
+
+    .product-meta {
+      font-size: 11px;
+      color: rgba(255,255,255,0.4);
+      margin-top: 2px;
+    }
+
+    .product-profit {
+      font-size: 13px;
+      font-weight: 700;
+      color: #34d399;
+    }
+
+    /* ── Alert Items ── */
+    .alert-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 14px;
+      background: rgba(239,68,68,0.1);
+      border-radius: 10px;
+      margin-bottom: 8px;
+      border-left: 3px solid #ef4444;
+      border: 1px solid rgba(239,68,68,0.2);
+    }
+
+    .alert-item .a-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: white;
+    }
+
+    .alert-item .a-stock {
+      font-size: 12px;
+      color: #f87171;
+      font-weight: 600;
+    }
+
+    /* ── Expense Items ── */
+    .exp-item {
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .exp-item:last-child { border-bottom: none; }
+
+    .exp-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+
+    .exp-cat    { font-size: 13px; font-weight: 600; color: white; }
+    .exp-amount { font-size: 13px; color: #f87171; font-weight: 700; }
+
+    .exp-bar-wrap {
+      width: 100%;
+      background: rgba(255,255,255,0.08);
+      border-radius: 4px;
+      height: 4px;
+    }
+
+    .exp-bar {
+      height: 4px;
+      border-radius: 4px;
+      background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+    }
+
+    /* ── Quick Actions ── */
+    .quick-actions {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .action-btn {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      padding: 18px;
+      text-align: center;
+      text-decoration: none;
+      transition: all 0.3s;
+      cursor: pointer;
+    }
+
+    .action-btn:hover {
+      background: rgba(96,165,250,0.1);
+      border-color: rgba(96,165,250,0.3);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(96,165,250,0.15);
+    }
+
+    .action-btn .a-icon { font-size: 26px; margin-bottom: 8px; }
+
+    .action-btn .a-text {
+      font-size: 13px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.8);
+    }
+
+    /* ── Prediction Cards ── */
+    .prediction-section {
+      padding: 20px 24px;
+    }
+
+    .pred-sub-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: rgba(255,255,255,0.4);
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .stock-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      border-radius: 10px;
+      margin-bottom: 8px;
+      border: 1px solid transparent;
+    }
+
+    /* ── Empty & Loading ── */
+    .empty {
+      text-align: center;
+      padding: 30px;
+      color: rgba(255,255,255,0.3);
+      font-size: 13px;
+    }
+
+    .loading {
+      color: rgba(255,255,255,0.3);
+      font-size: 13px;
+      padding: 10px 0;
+    }
+
+    /* ── Charts ── */
+    canvas { filter: brightness(1.1); }
+
+    /* ── Collapsible Sections ── */
+    .collapsible-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      margin-bottom: 0;
+      transition: background 0.2s;
+      user-select: none;
+    }
+    .collapsible-header:hover {
+      background: rgba(255,255,255,0.07);
+    }
+    .collapse-arrow {
+      font-size: 12px;
+      color: rgba(255,255,255,0.4);
+      transition: transform 0.3s;
+      flex-shrink: 0;
+    }
+    .collapse-arrow.collapsed {
+      transform: rotate(-90deg);
+    }
+    .collapsible-body {
+      overflow: hidden;
+      transition: max-height 0.4s ease, opacity 0.3s ease;
+      max-height: 2000px;
+      opacity: 1;
+      padding-top: 12px;
+    }
+    .collapsible-body.collapsed {
+      max-height: 0;
+      opacity: 0;
+      padding-top: 0;
+    }
+
+    /* ══════════════════════════════════════
+       MOBILE RESPONSIVE STYLES
+       Breakpoints: 768px (tablet), 480px (phone)
+    ══════════════════════════════════════ */
+
+    /* ── Hamburger Button ── */
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      padding: 6px;
+      border: none;
+      background: none;
+      z-index: 200;
+    }
+    .hamburger span {
+      display: block;
+      width: 24px;
+      height: 2px;
+      background: rgba(255,255,255,0.8);
+      border-radius: 2px;
+      transition: all 0.3s;
+    }
+    .hamburger.open span:nth-child(1) {
+      transform: translateY(7px) rotate(45deg);
+    }
+    .hamburger.open span:nth-child(2) {
+      opacity: 0;
+    }
+    .hamburger.open span:nth-child(3) {
+      transform: translateY(-7px) rotate(-45deg);
+    }
+
+    /* ── Tablet (768px and below) ── */
+    @media (max-width: 768px) {
+
+      /* Navbar */
+      .navbar {
+        padding: 0 16px;
+        height: 60px;
+        position: relative;
+      }
+      .hamburger { display: flex; }
+      .nav-links {
+        display: none;
+        position: fixed;
+        top: 60px;
+        left: 0; right: 0;
+        background: rgba(10,14,39,0.98);
+        backdrop-filter: blur(20px);
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+        flex-direction: column;
+        padding: 12px 16px 20px;
+        gap: 4px;
+        z-index: 150;
+      }
+      .nav-links.open { display: flex; }
+      .nav-links a {
+        padding: 12px 16px;
+        font-size: 15px;
+        border-radius: 10px;
+      }
+
+      /* Page padding */
+      .page { padding: 20px 14px; }
+
+      /* Welcome Banner */
+      .welcome-banner {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 14px;
+        padding: 22px 20px;
+      }
+      .welcome-banner h1 { font-size: 18px; }
+      .welcome-banner p  { font-size: 13px; }
+      .date-badge {
+        font-size: 12px;
+        padding: 8px 14px;
+        align-self: flex-start;
+      }
+
+      /* KPI Grid — 2 columns on tablet */
+      .kpi-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      .kpi-value { font-size: 22px; }
+
+      /* Net Profit Card */
+      .net-profit-card { padding: 20px; }
+      #net_profit { font-size: 28px !important; }
+
+      /* Two column → single column */
+      .two-col {
+        grid-template-columns: 1fr;
+      }
+
+      /* Performance summary grid */
+      .perf-grid {
+        grid-template-columns: 1fr !important;
+      }
+
+      /* Quick Actions — 3 columns still fine on tablet */
+      .quick-actions {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+      }
+      .action-btn { padding: 14px 10px; }
+      .action-btn .a-icon { font-size: 22px; }
+      .action-btn .a-text { font-size: 12px; }
+
+      /* Section divider */
+      .section-divider { margin: 24px 0 14px; }
+
+      /* Charts */
+      #expenseChart3D { height: 300px !important; }
+
+      /* Stock items */
+      .stock-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+
+      /* Chatbot widget */
+      #chatbot_widget {
+        bottom: 16px;
+        right: 16px;
+      }
+      #chat_window {
+        width: calc(100vw - 32px) !important;
+        max-width: 380px;
+      }
+    }
+
+    /* ── Mobile Phone (480px and below) ── */
+    @media (max-width: 480px) {
+
+      /* KPI Grid — single column on small phones */
+      .kpi-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+      .kpi-card { padding: 16px; }
+      .kpi-icon { font-size: 22px; margin-bottom: 8px; }
+      .kpi-value { font-size: 18px; }
+      .kpi-label { font-size: 10px; }
+
+      /* Net profit */
+      #net_profit { font-size: 24px !important; }
+
+      /* Welcome banner */
+      .welcome-banner { padding: 18px 16px; }
+      .welcome-banner h1 { font-size: 16px; }
+
+      /* Quick actions — 1 column on very small screens */
+      .quick-actions {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+      .action-btn {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 16px;
+        text-align: left;
+      }
+      .action-btn .a-icon {
+        font-size: 24px;
+        margin-bottom: 0;
+      }
+
+      /* Card header */
+      .card-header { padding: 14px 16px 12px; }
+      .card-body   { padding: 12px 16px 16px; }
+
+      /* Prediction section */
+      .prediction-section { padding: 14px 16px; }
+
+      /* Charts height */
+      #expenseChart3D { height: 260px !important; }
+
+      /* Section divider font */
+      .section-divider h2 { font-size: 11px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="logo">🏪 Shop Manager <span>| Micro Business</span></div>
+    <button class="hamburger" id="hamburger_btn"
+            onclick="toggleMenu()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="nav-links" id="nav_links">
+      <a href="index.html" class="active">Dashboard</a>
+      <a href="products.html">Products</a>
+      <a href="sales.html">Daily Sales</a>
+      <a href="expenses.html">Expenses</a>
+      <a href="reports.html">📄 Reports</a>
+      <a href="billing.html">🛒 Billing</a>
+      <a href="admin.html">👥 Staff</a>
+    </div>
+  </nav>
+
+  <div class="page">
+
+    <!-- Welcome Banner -->
+    <div class="welcome-banner" style="margin-bottom:24px;">
+      <div>
+        <h1>👋 Welcome to Your Shop Dashboard</h1>
+        <p>Here is a complete summary of your shop's performance</p>
+      </div>
+      <div class="date-badge" id="today_date">Loading...</div>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="section-divider"><h2>📊 Today's Overview</h2></div>
+    <div class="kpi-grid">
+      <div class="kpi-card blue">
+        <div class="kpi-icon">🛒</div>
+        <div class="kpi-label">Today's Sales</div>
+        <div class="kpi-value" id="kpi_sales">0</div>
+        <div class="kpi-sub">transactions today</div>
+      </div>
+      <div class="kpi-card green">
+        <div class="kpi-icon">💰</div>
+        <div class="kpi-label">Today's Revenue</div>
+        <div class="kpi-value" id="kpi_revenue">Rs. 0</div>
+        <div class="kpi-sub">money collected</div>
+      </div>
+      <div class="kpi-card purple">
+        <div class="kpi-icon">📈</div>
+        <div class="kpi-label">Gross Profit</div>
+        <div class="kpi-value" id="kpi_profit">Rs. 0</div>
+        <div class="kpi-sub">before expenses</div>
+      </div>
+      <div class="kpi-card red">
+        <div class="kpi-icon">💸</div>
+        <div class="kpi-label">Today's Expenses</div>
+        <div class="kpi-value" id="kpi_expenses">Rs. 0</div>
+        <div class="kpi-sub">total spent today</div>
+      </div>
+    </div>
+
+    <!-- Net Profit -->
+    <div class="net-profit-card" style="margin-bottom:24px;">
+      <div>
+        <div style="font-size:12px; font-weight:700; text-transform:uppercase;
+             letter-spacing:1px; color:rgba(255,255,255,0.5);">
+          Today's Net Profit (Revenue - Cost - Expenses)
+        </div>
+        <div id="net_profit" style="font-size:36px; font-weight:800;
+             color:#34d399; margin-top:8px; letter-spacing:-1px;">
+          Rs. 0
+        </div>
+      </div>
+      <div style="font-size:56px; opacity:0.6;">🏆</div>
+    </div>
+
+    <!-- Weekly & Monthly Summary -->
+    <div class="section-divider"><h2>📅 Performance Summary</h2></div>
+    <div class="perf-grid" style="display:grid; grid-template-columns:1fr 1fr;
+         gap:16px; margin-bottom:24px;">
+
+      <!-- Weekly Card -->
+      <div class="glass-card">
+        <div style="padding:20px 24px 16px;
+             border-bottom:1px solid rgba(255,255,255,0.06);
+             display:flex; justify-content:space-between;
+             align-items:center;">
+          <h3 style="font-size:15px; font-weight:700; color:white;">
+            📅 This Week
+          </h3>
+          <span style="font-size:11px; color:rgba(255,255,255,0.35);"
+                id="weekly_period">Last 7 days</span>
+        </div>
+        <div style="padding:20px 24px;">
+
+          <!-- Weekly Stats Grid -->
+          <div style="display:grid; grid-template-columns:1fr 1fr;
+               gap:12px; margin-bottom:16px;">
+            <div style="background:rgba(96,165,250,0.08);
+                 border:1px solid rgba(96,165,250,0.15);
+                 border-radius:10px; padding:14px;">
+              <div style="font-size:11px; color:rgba(255,255,255,0.4);
+                   text-transform:uppercase; letter-spacing:0.8px;">
+                Revenue
+              </div>
+              <div id="weekly_revenue" style="font-size:20px;
+                   font-weight:800; color:#60a5fa; margin-top:4px;">
+                Rs. 0
+              </div>
+            </div>
+            <div style="background:rgba(245,158,11,0.08);
+                 border:1px solid rgba(245,158,11,0.15);
+                 border-radius:10px; padding:14px;">
+              <div style="font-size:11px; color:rgba(255,255,255,0.4);
+                   text-transform:uppercase; letter-spacing:0.8px;">
+                Cost of Goods
+              </div>
+              <div id="weekly_cost" style="font-size:20px;
+                   font-weight:800; color:#fbbf24; margin-top:4px;">
+                Rs. 0
+              </div>
+            </div>
+            <div style="background:rgba(16,185,129,0.08);
+                 border:1px solid rgba(16,185,129,0.15);
+                 border-radius:10px; padding:14px;">
+              <div style="font-size:11px; color:rgba(255,255,255,0.4);
+                   text-transform:uppercase; letter-spacing:0.8px;">
+                Gross Profit
+              </div>
+              <div id="weekly_gross" style="font-size:20px;
+                   font-weight:800; color:#34d399; margin-top:4px;">
+                Rs. 0
+              </div>
+            </div>
+            <div style="background:rgba(239,68,68,0.08);
+                 border:1px solid rgba(239,68,68,0.15);
+                 border-radius:10px; padding:14px;">
+              <div style="font-size:11px; color:rgba(255,255,255,0.4);
+                   text-transform:uppercase; letter-spacing:0.8px;">
+                Expenses
+              </div>
+              <div id="weekly_expenses" style="font-size:20px;
+                   font-weight:800; color:#f87171; margin-top:4px;">
+                Rs. 0
+              </div>
+            </div>
+          </div>
+
+          <!-- Weekly Net Profit -->
+          <div style="background:rgba(255,255,255,0.04);
+               border:1px solid rgba(255,255,255,0.08);
+               border-radius:10px; padding:14px 18px;
+               display:flex; justify-content:space-between;
+               align-items:center;">
+            <div>
+              <div style="font-size:11px; color:rgba(255,255,255,0.4);
+                   text-transform:uppercase; letter-spacing:0.8px;">
+                Net Profit This Week
+              </div>
+              <div id="weekly_net" style="font-size:24px;
+                   font-weight:800; color:#34d399; margin-top:4px;">
+                Rs. 0
+              </div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:11px; color:rgba(255,255,255,0.35);">
+                Transactions
+              </div>
+              <div id="weekly_transactions" style="font-size:22px;
+                   font-weight:800; color:white;">
+                0
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Monthly Card -->
+      <div class="glass-card">
+        <div style="padding:20px 24px 16px;
+             border-bottom:1px solid rgba(255,255,255,0.06);
+             display:flex; justify-content:space-between;
+             align-items:center;">
+          <h3 style="font-size:15px; font-weight:700; color:white;">
+            🗓️ This Month
+          </h3>
+          <span style="font-size:11px; color:rgba(255,255,255,0.35);"
+                id="monthly_period">This month</span>
+        </div>
+        <div style="padding:20px 24px;">
+
+          <!-- Monthly Stats Grid -->
+          <div style="display:grid; grid-template-columns:1fr 1fr;
+               gap:12px; margin-bottom:16px;">
+            <div style="background:rgba(96,165,250,0.08);
+                 border:1px solid rgba(96,165,250,0.15);
+                 border-radius:10px; padding:14px;">
+              <div style="font-size:11px; color:rgba(255,255,255,0.4);
+                   text-transform:uppercase; letter-spacing:0.8px;">
+                Revenue
+              </div>
+              <div id="monthly_revenue" style="font-size:20px;
+                   font-weight:800; color:#60a5fa; margin-top:4px;">
+                Rs. 0
+              </div>
+            </div>
+            <div style="background:rgba(245,158,11,0.08);
+                 border:1px solid rgba(245,158,11,0.15);
+                 border-radius:10px; padding:14px;">
+              <div style="font-size:11px; color:rgba(255,255,255,0.4);
+                   text-transform:uppercase; letter-spacing:0.8px;">
+                Cost of Goods
+              </div>
+              <div id="monthly_cost" style="font-size:20px;
+                   font-weight:800; color:#fbbf24; margin-top:4px;">
+                Rs. 0
+              </div>
+            </div>
+            <div style="background:rgba(16,185,129,0.08);
+                 border:1px solid rgba(16,185,129,0.15);
+                 border-radius:10px; padding:14px;">
+              <div style="font-size:11px; color:rgba(255,255,255,0.4);
+                   text-transform:uppercase; letter-spacing:0.8px;">
+                Gross Profit
+              </div>
+              <div id="monthly_gross" style="font-size:20px;
+                   font-weight:800; color:#34d399; margin-top:4px;">
+                Rs. 0
+              </div>
+            </div>
+            <div style="background:rgba(239,68,68,0.08);
+                 border:1px solid rgba(239,68,68,0.15);
+                 border-radius:10px; padding:14px;">
+              <div style="font-size:11px; color:rgba(255,255,255,0.4);
+                   text-transform:uppercase; letter-spacing:0.8px;">
+                Expenses
+              </div>
+              <div id="monthly_expenses" style="font-size:20px;
+                   font-weight:800; color:#f87171; margin-top:4px;">
+                Rs. 0
+              </div>
+            </div>
+          </div>
+
+          <!-- Monthly Net Profit + Best Product -->
+          <div style="background:rgba(255,255,255,0.04);
+               border:1px solid rgba(255,255,255,0.08);
+               border-radius:10px; padding:14px 18px;">
+            <div style="display:flex; justify-content:space-between;
+                 align-items:center; margin-bottom:10px;">
+              <div>
+                <div style="font-size:11px; color:rgba(255,255,255,0.4);
+                     text-transform:uppercase; letter-spacing:0.8px;">
+                  Net Profit This Month
+                </div>
+                <div id="monthly_net" style="font-size:24px;
+                     font-weight:800; color:#34d399; margin-top:4px;">
+                  Rs. 0
+                </div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-size:11px; color:rgba(255,255,255,0.35);">
+                  Transactions
+                </div>
+                <div id="monthly_transactions" style="font-size:22px;
+                     font-weight:800; color:white;">
+                  0
+                </div>
+              </div>
+            </div>
+            <!-- Best Product -->
+            <div style="background:rgba(139,92,246,0.1);
+                 border:1px solid rgba(139,92,246,0.2);
+                 border-radius:8px; padding:10px 14px;
+                 display:flex; align-items:center; gap:10px;">
+              <span style="font-size:18px;">🏆</span>
+              <div>
+                <div style="font-size:10px; color:rgba(255,255,255,0.4);
+                     text-transform:uppercase; letter-spacing:0.8px;">
+                  Best Selling This Month
+                </div>
+                <div id="best_product" style="font-size:13px;
+                     font-weight:700; color:#a78bfa; margin-top:2px;">
+                  Loading...
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <!-- Quick Actions -->
+    <div class="section-divider"><h2>⚡ Quick Actions</h2></div>
+    <div class="quick-actions" style="margin-bottom:24px;">
+      <a class="action-btn" href="products.html">
+        <div class="a-icon">📦</div>
+        <div class="a-text">Add New Product</div>
+      </a>
+      <a class="action-btn" href="sales.html">
+        <div class="a-icon">💰</div>
+        <div class="a-text">Record a Sale</div>
+      </a>
+      <a class="action-btn" href="expenses.html">
+        <div class="a-icon">💸</div>
+        <div class="a-text">Add an Expense</div>
+      </a>
+    </div>
+
+    <!-- Products & Stock -->
+    <div class="section-divider"><h2>📦 Inventory Status</h2></div>
+    <div class="two-col" style="margin-bottom:24px;">
+      <div class="glass-card">
+        <div class="card-header">
+          <h3>📦 Your Products</h3>
+          <a href="products.html">View All →</a>
+        </div>
+        <div class="card-body">
+          <div id="products_list">
+            <div class="loading">Loading products...</div>
+          </div>
+        </div>
+      </div>
+      <div class="glass-card">
+        <div class="card-header">
+          <h3>⚠️ Low Stock Alerts</h3>
+          <a href="products.html">Manage →</a>
+        </div>
+        <div class="card-body">
+          <div id="low_stock_list">
+            <div class="loading">Checking stock...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="section-divider"><h2>📈 Performance Charts</h2></div>
+    <div class="two-col" style="margin-bottom:16px;">
+      <div class="glass-card">
+        <div class="card-header">
+          <h3>📈 Profit Trend — Last 7 Days</h3>
+        </div>
+        <div class="card-body">
+          <canvas id="profitChart" height="140"></canvas>
+        </div>
+      </div>
+      <div class="glass-card">
+        <div class="card-header">
+          <h3>📊 Best Selling Products — This Month</h3>
+        </div>
+        <div class="card-body">
+          <canvas id="productsChart" height="140"></canvas>
+        </div>
+      </div>
+    </div>
+
+<!-- Expense Chart - Fixed overlap issue -->
+    <div class="glass-card" style="margin-bottom:20px;">
+      <div class="card-header">
+        <h3>💰 Expense Breakdown by Category</h3>
+      </div>
+      <div class="card-body" style="padding-bottom:0;">
+        <div id="expenseChart3D"
+             style="width:100%; height:420px; min-height:420px;">
+        </div>
+      </div>
+    </div>
+
+    <!-- ML Predictions — Collapsible Sections -->
+    <div class="section-divider"><h2>🤖 AI Predictions</h2></div>
+    <div class="glass-card" style="margin-bottom:24px;">
+      <div class="prediction-section">
+
+        <!-- Stock Recommendations — Collapsible -->
+        <div class="collapsible-header" onclick="toggleSection('stock_section', 'stock_arrow')">
+          <div class="pred-sub-title" style="margin:0;border:none;padding:0;">
+            📦 Stock Recommendations
+          </div>
+          <span class="collapse-arrow" id="stock_arrow">▼</span>
+        </div>
+        <div id="stock_section" class="collapsible-body">
+          <div id="stock_recommendations">
+            <div class="loading">Analyzing stock...</div>
+          </div>
+        </div>
+
+        <!-- Profit Forecast — Collapsible -->
+        <div class="collapsible-header" onclick="toggleSection('profit_section', 'profit_arrow')"
+             style="margin-top:12px;">
+          <div class="pred-sub-title" style="margin:0;border:none;padding:0;">
+            📈 Profit Forecast — Next 7 Days
+          </div>
+          <span class="collapse-arrow" id="profit_arrow">▼</span>
+        </div>
+        <div id="profit_section" class="collapsible-body">
+          <!-- Fix Issue 3: horizontal scroll wrapper for 7-day forecast -->
+          <div id="profit_predictions" style="overflow-x:auto; padding-bottom:8px;">
+            <div class="loading">Calculating forecast...</div>
+          </div>
+        </div>
+
+        <!-- Demand Forecast — Collapsible -->
+        <div class="collapsible-header" onclick="toggleSection('demand_section', 'demand_arrow')"
+             style="margin-top:12px;">
+          <div class="pred-sub-title" style="margin:0;border:none;padding:0;">
+            🛒 Demand Forecast — Next 7 Days
+          </div>
+          <span class="collapse-arrow" id="demand_arrow">▼</span>
+        </div>
+        <div id="demand_section" class="collapsible-body">
+          <div id="demand_forecasts">
+            <div class="loading">Forecasting demand...</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Expenses Breakdown -->
+    <div class="section-divider"><h2>💸 Expense Details</h2></div>
+    <div class="glass-card" style="margin-bottom:24px;">
+      <div class="card-header">
+        <h3>💸 Today's Expense Breakdown</h3>
+        <a href="expenses.html">View All →</a>
+      </div>
+      <div class="card-body">
+        <div id="expense_breakdown">
+          <div class="loading">Loading expenses...</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- AI Chatbot Widget -->
+  <div id="chatbot_widget" style="
+    position:fixed; bottom:30px; right:30px;
+    z-index:1000; font-family:'Inter',sans-serif;">
+
+    <button onclick="toggleChat()" id="chat_toggle_btn" style="
+      width:60px; height:60px;
+      background:linear-gradient(135deg,#1a56db,#7c3aed);
+      border:none; border-radius:50%;
+      color:white; font-size:28px;
+      cursor:pointer;
+      box-shadow:0 4px 20px rgba(26,86,219,0.5),
+                 0 0 0 0 rgba(26,86,219,0.4);
+      animation: pulse 2s infinite;
+      display:flex; align-items:center;
+      justify-content:center;">
+      🤖
+    </button>
+
+    <div id="chat_window" style="
+      display:none; width:390px;
+      background:rgba(10,14,39,0.95);
+      backdrop-filter:blur(20px);
+      border-radius:20px;
+      box-shadow:0 20px 60px rgba(0,0,0,0.5);
+      margin-bottom:15px; overflow:hidden;
+      border:1px solid rgba(255,255,255,0.1);">
+
+      <div style="
+        background:linear-gradient(135deg,#1a56db,#7c3aed);
+        padding:18px 22px;
+        display:flex; justify-content:space-between;
+        align-items:center;">
+        <div>
+          <div style="color:white;font-weight:700;font-size:15px;">
+            🤖 AI Business Assistant
+          </div>
+          <div style="color:rgba(255,255,255,0.7);
+               font-size:12px;margin-top:2px;">
+            Ask anything about your shop!
+          </div>
+        </div>
+        <button onclick="toggleChat()" style="
+          background:rgba(255,255,255,0.15);
+          border:none;color:white;
+          width:30px;height:30px;
+          border-radius:50%;cursor:pointer;
+          font-size:14px;">✕</button>
+      </div>
+
+      <div id="suggestions_bar" style="
+        padding:12px 16px;
+        background:rgba(255,255,255,0.03);
+        border-bottom:1px solid rgba(255,255,255,0.06);
+        overflow-x:auto; white-space:nowrap;">
+        <div style="font-size:11px;color:rgba(255,255,255,0.4);
+             margin-bottom:6px;font-weight:600;">
+          💡 Quick questions:
+        </div>
+        <div id="suggestions_list"></div>
+      </div>
+
+      <div id="chat_messages" style="
+        height:320px; overflow-y:auto;
+        padding:16px;
+        background:rgba(255,255,255,0.02);">
+        <div style="
+          background:rgba(255,255,255,0.06);
+          border-radius:12px 12px 12px 0;
+          padding:12px 16px; margin-bottom:12px;
+          max-width:85%;
+          border:1px solid rgba(255,255,255,0.08);">
+          <div style="font-size:13px;color:rgba(255,255,255,0.85);
+               line-height:1.5;">
+            👋 Hello! I'm your AI business assistant.
+            I have access to your real shop data.
+            Ask me anything!
+          </div>
+        </div>
+      </div>
+
+      <div style="
+        padding:12px 16px;
+        background:rgba(255,255,255,0.03);
+        border-top:1px solid rgba(255,255,255,0.06);
+        display:flex; gap:8px; align-items:center;">
+        <input type="text" id="chat_input"
+          placeholder="Ask about your shop..."
+          onkeypress="handleKeyPress(event)"
+          style="
+            flex:1; padding:10px 14px;
+            background:rgba(255,255,255,0.08);
+            border:1px solid rgba(255,255,255,0.1);
+            border-radius:10px; font-size:13px;
+            outline:none; color:white;
+            font-family:'Inter',sans-serif;">
+        <button onclick="sendMessage()" style="
+          background:linear-gradient(135deg,#1a56db,#7c3aed);
+          color:white; border:none;
+          padding:10px 16px; border-radius:10px;
+          cursor:pointer; font-size:18px;">📤</button>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    @keyframes pulse {
+      0%   { box-shadow: 0 4px 20px rgba(26,86,219,0.5), 0 0 0 0 rgba(26,86,219,0.4); }
+      70%  { box-shadow: 0 4px 20px rgba(26,86,219,0.5), 0 0 0 15px rgba(26,86,219,0); }
+      100% { box-shadow: 0 4px 20px rgba(26,86,219,0.5), 0 0 0 0 rgba(26,86,219,0); }
+    }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
+  </style>
+
+  <script>
+    const API = 'http://localhost:5000';
+    const now = new Date();
+    document.getElementById('today_date').textContent =
+      now.toLocaleDateString('en-PK', {
+        weekday:'long', year:'numeric',
+        month:'long', day:'numeric'
+      });
+    const todayStr = now.toISOString().split('T')[0];
+
+    async function loadSummary() {
+      try {
+        const res  = await fetch(`${API}/api/sales/summary`);
+        const json = await res.json();
+        if (!json.success) return;
+        const d = json.data;
+        document.getElementById('kpi_sales').textContent    = d.total_sales;
+        document.getElementById('kpi_revenue').textContent  = `Rs. ${d.total_revenue}`;
+        document.getElementById('kpi_profit').textContent   = `Rs. ${d.gross_profit}`;
+        const expRes   = await fetch(`${API}/api/expenses`);
+        const expJson  = await expRes.json();
+        const todayExp = (expJson.data||[]).filter(e=>e.date===todayStr);
+        const totalExp = todayExp.reduce((s,e)=>s+e.amount,0);
+        document.getElementById('kpi_expenses').textContent = `Rs. ${totalExp.toFixed(2)}`;
+        const netProfit = d.gross_profit - totalExp;
+        const netEl = document.getElementById('net_profit');
+        netEl.textContent = `Rs. ${netProfit.toFixed(2)}`;
+        netEl.style.color = netProfit >= 0 ? '#34d399' : '#f87171';
+      } catch(e) { console.error(e); }
+    }
+
+    async function loadProducts() {
+      try {
+        const res  = await fetch(`${API}/api/products`);
+        const json = await res.json();
+        const data = json.data || [];
+        if (data.length === 0) {
+          document.getElementById('products_list').innerHTML =
+            '<div class="empty">No products yet. <a href="products.html" style="color:#60a5fa;">Add one!</a></div>';
+          document.getElementById('low_stock_list').innerHTML =
+            '<div class="empty">No products to check.</div>';
+          return;
+        }
+        document.getElementById('products_list').innerHTML =
+          data.slice(0,5).map(p=>`
+            <div class="product-item">
+              <div>
+                <div class="product-name">${p.name}</div>
+                <div class="product-meta">${p.category} • Stock: ${p.current_stock}</div>
+              </div>
+              <div class="product-profit">+Rs. ${p.profit_per_unit}</div>
+            </div>`).join('');
+        const lowStock = data.filter(p=>p.current_stock<=p.reorder_level);
+        document.getElementById('low_stock_list').innerHTML =
+          lowStock.length === 0
+          ? '<div class="empty">✅ All products have enough stock!</div>'
+          : lowStock.map(p=>`
+              <div class="alert-item">
+                <div class="a-name">${p.name}</div>
+                <div class="a-stock">Only ${p.current_stock} left!</div>
+              </div>`).join('');
+      } catch(e) { console.error(e); }
+    }
+
+    async function loadExpenses() {
+      try {
+        const res  = await fetch(`${API}/api/expenses`);
+        const json = await res.json();
+        const data = (json.data||[]).filter(e=>e.date===todayStr);
+        if (data.length === 0) {
+          document.getElementById('expense_breakdown').innerHTML =
+            '<div class="empty">No expenses recorded today.</div>';
+          return;
+        }
+        const total = data.reduce((s,e)=>s+e.amount,0);
+        document.getElementById('expense_breakdown').innerHTML =
+          data.map(e=>{
+            const pct = total>0?((e.amount/total)*100).toFixed(0):0;
+            return `
+              <div class="exp-item">
+                <div class="exp-row">
+                  <span class="exp-cat">${e.category}</span>
+                  <span class="exp-amount">Rs. ${e.amount}</span>
+                </div>
+                <div class="exp-bar-wrap">
+                  <div class="exp-bar" style="width:${pct}%"></div>
+                </div>
+              </div>`;
+          }).join('') + `
+          <div style="margin-top:14px;padding-top:12px;
+               border-top:1px solid rgba(255,255,255,0.08);
+               display:flex;justify-content:space-between;">
+            <span style="font-weight:700;font-size:14px;color:white;">Total Today</span>
+            <span style="font-weight:700;color:#f87171;font-size:16px;">Rs. ${total.toFixed(2)}</span>
+          </div>`;
+      } catch(e) { console.error(e); }
+    }
+
+    async function loadProfitChart() {
+      try {
+        const res  = await fetch(`${API}/api/charts/profit-trend`);
+        const json = await res.json();
+        const d    = json.data;
+        new Chart(document.getElementById('profitChart').getContext('2d'), {
+          type: 'line',
+          data: {
+            labels: d.labels,
+            datasets: [
+              {
+                label:'Revenue (Rs.)', data:d.revenue,
+                borderColor:'#60a5fa',
+                backgroundColor:'rgba(96,165,250,0.1)',
+                borderWidth:2, tension:0.4, fill:true,
+                pointBackgroundColor:'#60a5fa',
+                pointRadius:4
+              },
+              {
+                label:'Profit (Rs.)', data:d.profit,
+                borderColor:'#34d399',
+                backgroundColor:'rgba(52,211,153,0.1)',
+                borderWidth:2, tension:0.4, fill:true,
+                pointBackgroundColor:'#34d399',
+                pointRadius:4
+              }
+            ]
+          },
+          options: {
+            responsive:true,
+            plugins:{
+              legend:{
+                position:'top',
+                labels:{ color:'rgba(255,255,255,0.6)', font:{size:11} }
+              }
+            },
+            scales:{
+              x:{ ticks:{color:'rgba(255,255,255,0.4)'}, grid:{color:'rgba(255,255,255,0.05)'} },
+              y:{ beginAtZero:true, ticks:{color:'rgba(255,255,255,0.4)', callback:v=>`Rs.${v}`}, grid:{color:'rgba(255,255,255,0.05)'} }
+            }
+          }
+        });
+      } catch(e) { console.error(e); }
+    }
+
+    async function loadProductsChart() {
+      try {
+        const res  = await fetch(`${API}/api/charts/top-products`);
+        const json = await res.json();
+        const d    = json.data;
+        if (!d.labels.length) return;
+        new Chart(document.getElementById('productsChart').getContext('2d'), {
+          type:'bar',
+          data:{
+            labels:d.labels,
+            datasets:[{
+              label:'Units Sold', data:d.sold,
+              backgroundColor:[
+                'rgba(96,165,250,0.7)',
+                'rgba(52,211,153,0.7)',
+                'rgba(167,139,250,0.7)',
+                'rgba(251,146,60,0.7)',
+                'rgba(248,113,113,0.7)'
+              ],
+              borderRadius:8,
+              borderWidth:0
+            }]
+          },
+          options:{
+            responsive:true,
+            plugins:{ legend:{display:false} },
+            scales:{
+              x:{ ticks:{color:'rgba(255,255,255,0.4)'}, grid:{display:false} },
+              y:{ beginAtZero:true, ticks:{color:'rgba(255,255,255,0.4)', callback:v=>`${v}u`}, grid:{color:'rgba(255,255,255,0.05)'} }
+            }
+          }
+        });
+      } catch(e) { console.error(e); }
+    }
+
+async function loadExpenseChart() {
+      try {
+        const res  = await fetch(
+          `${API}/api/charts/expenses-breakdown`);
+        const json = await res.json();
+        const d    = json.data;
+
+        // Initialize ECharts
+        const chart = echarts.init(
+          document.getElementById('expenseChart3D'),
+          'dark'
+        );
+
+        if (!d.labels.length) {
+          chart.setOption({
+            backgroundColor: 'transparent',
+            title: {
+              text: 'No expense data yet',
+              left: 'center', top: 'center',
+              textStyle: { color: 'rgba(255,255,255,0.3)', fontSize: 14 }
+            }
+          });
+          return;
+        }
+
+        // Build data array
+        const colors = [
+          '#3b82f6', '#10b981', '#f59e0b',
+          '#ef4444', '#8b5cf6', '#06b6d4',
+          '#f97316', '#ec4899'
+        ];
+
+        const pieData = d.labels.map((label, i) => ({
+          name : label,
+          value: d.amounts[i],
+          itemStyle: {
+            color: colors[i % colors.length],
+            shadowBlur : 20,
+            shadowColor: colors[i % colors.length],
+          }
+        }));
+
+        const option = {
+          backgroundColor: 'transparent',
+          tooltip: {
+            trigger    : 'item',
+            backgroundColor: 'rgba(10,14,39,0.9)',
+            borderColor: 'rgba(255,255,255,0.1)',
+            textStyle  : { color: '#fff' },
+            formatter  : (params) =>
+              `<div style="padding:4px 8px;">
+                <div style="font-weight:700;
+                     color:${params.color};
+                     margin-bottom:4px;">
+                  ${params.name}
+                </div>
+                <div>Rs. ${params.value.toLocaleString()}</div>
+                <div style="color:rgba(255,255,255,0.5);">
+                  ${params.percent}% of total
+                </div>
+              </div>`
+          },
+          legend: {
+            orient   : 'horizontal',
+            bottom   : '2%',
+            left     : 'center',
+            textStyle: {
+              color   : 'rgba(255,255,255,0.6)',
+              fontSize: 12
+            },
+            itemWidth : 12,
+            itemHeight: 12,
+            icon      : 'circle'
+          },
+          series: [{
+            name      : 'Expenses',
+            type      : 'pie',
+            radius    : ['30%', '70%'],
+            center    : ['50%', '45%'],
+            roseType  : 'area',
+            itemStyle : {
+              borderRadius: 8,
+              borderColor : 'rgba(10,14,39,0.8)',
+              borderWidth : 3,
+            },
+            label: {
+              show     : true,
+              formatter: '{b}\nRs.{c}',
+              color    : 'rgba(255,255,255,0.8)',
+              fontSize : 11,
+              lineHeight: 16
+            },
+            labelLine: {
+              lineStyle: {
+                color: 'rgba(255,255,255,0.2)'
+              }
+            },
+            emphasis: {
+              scale     : true,
+              scaleSize : 12,
+              itemStyle : {
+                shadowBlur  : 40,
+                shadowOffsetX: 0,
+                shadowColor : 'rgba(0,0,0,0.5)',
+                borderWidth : 4,
+              },
+              label: {
+                fontSize  : 14,
+                fontWeight: 'bold'
+              }
+            },
+            data: pieData,
+            animationType      : 'expansion',
+            animationDuration  : 1200,
+            animationEasing    : 'cubicInOut',
+            animationDelay     : 200
+          }]
+        };
+
+        chart.setOption(option);
+
+        // Resize chart when window resizes
+        window.addEventListener('resize',
+          () => chart.resize());
+
+        // Auto rotate highlight
+        let currentIndex = 0;
+        setInterval(() => {
+          chart.dispatchAction({
+            type       : 'downplay',
+            seriesIndex: 0,
+            dataIndex  : currentIndex
+          });
+          currentIndex = (currentIndex + 1) % pieData.length;
+          chart.dispatchAction({
+            type       : 'highlight',
+            seriesIndex: 0,
+            dataIndex  : currentIndex
+          });
+        }, 2000);
+
+      } catch(e) { console.error(e); }
+    }
+
+    async function loadPredictions() {
+      try {
+        const res  = await fetch(`${API}/api/predictions/all`);
+        const json = await res.json();
+
+        // Stock
+        const stock = json.stock_recommendations;
+        if (stock && stock.success && stock.recommendations.length) {
+          document.getElementById('stock_recommendations').innerHTML =
+            stock.recommendations.map(r=>`
+              <div class="stock-item" style="
+                background:${r.urgency==='critical'?'rgba(239,68,68,0.1)':r.urgency==='high'?'rgba(245,158,11,0.1)':r.urgency==='medium'?'rgba(234,179,8,0.1)':'rgba(16,185,129,0.1)'};
+                border-color:${r.urgency==='critical'?'rgba(239,68,68,0.3)':r.urgency==='high'?'rgba(245,158,11,0.3)':r.urgency==='medium'?'rgba(234,179,8,0.3)':'rgba(16,185,129,0.3)'};">
+                <div>
+                  <div style="font-weight:700;font-size:13px;color:white;">${r.product_name}</div>
+                  <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:3px;">
+                    Stock: ${r.current_stock} • ${r.avg_daily_sales}/day •
+                    ${r.days_remaining==='N/A'?'No recent sales':r.days_remaining+' days left'}
+                  </div>
+                </div>
+                <div style="text-align:right;">
+                  <div style="font-size:12px;font-weight:600;color:rgba(255,255,255,0.8);">${r.action}</div>
+                  ${r.recommended_order>0?`<div style="font-size:11px;color:#60a5fa;margin-top:3px;">Order ${r.recommended_order} units</div>`:''}
+                </div>
+              </div>`).join('');
+        } else {
+          document.getElementById('stock_recommendations').innerHTML =
+            '<div class="empty">No products to analyze.</div>';
+        }
+
+        // Profit
+        const profit = json.profit_prediction;
+        if (profit && profit.success) {
+          document.getElementById('profit_predictions').innerHTML = `
+            <div style="background:rgba(16,185,129,0.1);padding:10px 14px;
+                 border-radius:8px;margin-bottom:12px;font-size:12px;
+                 color:#34d399;border:1px solid rgba(16,185,129,0.2);">
+              ${profit.trend==='increasing'?'📈':'📉'} ${profit.message}
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(7,1fr);
+                 gap:8px;min-width:480px;">
+              ${profit.predictions.map(p=>`
+                <div style="text-align:center;padding:12px 6px;
+                     background:rgba(255,255,255,0.04);border-radius:10px;
+                     border-top:3px solid ${p.profit>=0?'#34d399':'#f87171'};
+                     border:1px solid rgba(255,255,255,0.06);">
+                  <div style="font-size:10px;color:rgba(255,255,255,0.4);font-weight:700;">${p.day}</div>
+                  <div style="font-size:11px;color:rgba(255,255,255,0.3);margin-top:2px;">${p.date.slice(5)}</div>
+                  <div style="font-size:13px;font-weight:700;
+                       color:${p.profit>=0?'#34d399':'#f87171'};margin-top:6px;">
+                    Rs.${p.profit}
+                  </div>
+                </div>`).join('')}
+            </div>`;
+        } else {
+          document.getElementById('profit_predictions').innerHTML = `
+            <div style="background:rgba(255,255,255,0.04);padding:14px;
+                 border-radius:8px;text-align:center;color:rgba(255,255,255,0.4);
+                 font-size:13px;border:1px solid rgba(255,255,255,0.06);">
+              📊 ${profit?profit.message:'Add more sales to unlock predictions!'}
+            </div>`;
+        }
+
+        // Demand
+        const demand = json.demand_forecast;
+        if (demand && demand.success) {
+          document.getElementById('demand_forecasts').innerHTML =
+            demand.forecasts.map(f=>`
+              <div style="display:flex;justify-content:space-between;
+                   align-items:center;padding:12px 16px;
+                   background:rgba(255,255,255,0.04);border-radius:10px;
+                   margin-bottom:8px;
+                   border:1px solid rgba(255,255,255,0.06);
+                   border-left:3px solid #60a5fa;">
+                <div>
+                  <div style="font-weight:700;font-size:13px;color:white;">${f.product_name}</div>
+                  <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:3px;">
+                    Avg ${f.daily_average} units/day •
+                    <span style="color:${f.trend==='increasing'?'#34d399':f.trend==='decreasing'?'#f87171':'#fbbf24'};">
+                      ${f.trend} ${f.trend==='increasing'?'📈':f.trend==='decreasing'?'📉':'➡️'}
+                    </span>
+                  </div>
+                  <div style="font-size:11px;color:rgba(255,255,255,0.35);margin-top:4px;font-style:italic;">
+                    ${f.recommendation}
+                  </div>
+                </div>
+                <div style="text-align:right;">
+                  <div style="font-size:22px;font-weight:800;color:#60a5fa;">${f.next_7_days}</div>
+                  <div style="font-size:10px;color:rgba(255,255,255,0.3);">units / 7 days</div>
+                </div>
+              </div>`).join('');
+        } else {
+          document.getElementById('demand_forecasts').innerHTML = `
+            <div style="background:rgba(255,255,255,0.04);padding:14px;
+                 border-radius:8px;text-align:center;
+                 color:rgba(255,255,255,0.4);font-size:13px;
+                 border:1px solid rgba(255,255,255,0.06);">
+              🛒 ${demand?demand.message:'Record more sales to forecast demand!'}
+            </div>`;
+        }
+      } catch(e) { console.error(e); }
+    }
+
+    // ── Chatbot ──
+    let chatOpen = false;
+
+    function toggleChat() {
+      chatOpen = !chatOpen;
+      const win = document.getElementById('chat_window');
+      const btn = document.getElementById('chat_toggle_btn');
+      if (chatOpen) {
+        win.style.display = 'block';
+        loadSuggestions();
+        document.getElementById('chat_input').focus();
+      } else {
+        win.style.display = 'none';
+      }
+    }
+
+    async function loadSuggestions() {
+      try {
+        const res  = await fetch(`${API}/api/chatbot/suggestions`);
+        const json = await res.json();
+        if (!json.success) return;
+        document.getElementById('suggestions_list').innerHTML =
+          json.suggestions.map(s=>`
+            <button onclick="askSuggestion('${s}')" style="
+              display:inline-block;
+              background:rgba(255,255,255,0.08);
+              border:1px solid rgba(255,255,255,0.12);
+              color:rgba(255,255,255,0.8);
+              padding:5px 12px; border-radius:20px;
+              font-size:11px; cursor:pointer;
+              margin-right:6px; white-space:nowrap;
+              font-family:'Inter',sans-serif;">
+              ${s}
+            </button>`).join('');
+      } catch(e) { console.error(e); }
+    }
+
+    function askSuggestion(q) {
+      document.getElementById('chat_input').value = q;
+      sendMessage();
+    }
+
+    function handleKeyPress(e) {
+      if (e.key === 'Enter') sendMessage();
+    }
+
+    function addMessage(text, isUser) {
+      const msgs = document.getElementById('chat_messages');
+      const div  = document.createElement('div');
+      div.style.cssText = `margin-bottom:12px;display:flex;justify-content:${isUser?'flex-end':'flex-start'};`;
+      div.innerHTML = `
+        <div style="
+          background:${isUser?'linear-gradient(135deg,#1a56db,#7c3aed)':'rgba(255,255,255,0.07)'};
+          color:${isUser?'white':'rgba(255,255,255,0.85)'};
+          border-radius:${isUser?'12px 12px 0 12px':'12px 12px 12px 0'};
+          padding:10px 14px; max-width:85%;
+          font-size:13px; line-height:1.5;
+          border:1px solid ${isUser?'transparent':'rgba(255,255,255,0.08)'};">
+          ${text}
+        </div>`;
+      msgs.appendChild(div);
+      msgs.scrollTop = msgs.scrollHeight;
+    }
+
+    function addTypingIndicator() {
+      const msgs = document.getElementById('chat_messages');
+      const div  = document.createElement('div');
+      div.id = 'typing_indicator';
+      div.style.marginBottom = '12px';
+      div.innerHTML = `
+        <div style="background:rgba(255,255,255,0.07);
+             border-radius:12px 12px 12px 0;
+             padding:12px 16px;display:inline-block;
+             border:1px solid rgba(255,255,255,0.08);">
+          <span style="color:rgba(255,255,255,0.5);font-size:13px;">
+            🤖 Thinking...
+          </span>
+        </div>`;
+      msgs.appendChild(div);
+      msgs.scrollTop = msgs.scrollHeight;
+    }
+
+    async function sendMessage() {
+      const input = document.getElementById('chat_input');
+      const msg   = input.value.trim();
+      if (!msg) return;
+      addMessage(msg, true);
+      input.value = '';
+      addTypingIndicator();
+      try {
+        const res = await fetch(`${API}/api/chatbot`, {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({message:msg})
+        });
+        const json = await res.json();
+        const ind  = document.getElementById('typing_indicator');
+        if (ind) ind.remove();
+        if (json.success) {
+          addMessage(json.response, false);
+        } else {
+          addMessage(`❌ ${json.error}`, false);
+        }
+      } catch(e) {
+        const ind = document.getElementById('typing_indicator');
+        if (ind) ind.remove();
+        addMessage('❌ Cannot connect to server!', false);
+      }
+    }
+    async function loadPeriodSummary() {
+      try {
+        const res  = await fetch(`${API}/api/sales/period-summary`);
+        const json = await res.json();
+        if (!json.success) return;
+        const w = json.data.weekly;
+        const m = json.data.monthly;
+
+        // Weekly
+        document.getElementById('weekly_revenue').textContent      = `Rs. ${w.revenue}`;
+        document.getElementById('weekly_cost').textContent         = `Rs. ${w.cost}`;
+        document.getElementById('weekly_gross').textContent        = `Rs. ${w.gross_profit}`;
+        document.getElementById('weekly_expenses').textContent     = `Rs. ${w.expenses}`;
+        document.getElementById('weekly_transactions').textContent = w.transactions;
+        document.getElementById('weekly_period').textContent       = w.period;
+
+        const weekNetEl = document.getElementById('weekly_net');
+        weekNetEl.textContent = `Rs. ${w.net_profit}`;
+        weekNetEl.style.color = w.net_profit >= 0 ? '#34d399' : '#f87171';
+
+        // Monthly
+        document.getElementById('monthly_revenue').textContent      = `Rs. ${m.revenue}`;
+        document.getElementById('monthly_cost').textContent         = `Rs. ${m.cost}`;
+        document.getElementById('monthly_gross').textContent        = `Rs. ${m.gross_profit}`;
+        document.getElementById('monthly_expenses').textContent     = `Rs. ${m.expenses}`;
+        document.getElementById('monthly_transactions').textContent = m.transactions;
+        document.getElementById('monthly_period').textContent       = m.period;
+        document.getElementById('best_product').textContent         = m.best_product;
+
+        const monthNetEl = document.getElementById('monthly_net');
+        monthNetEl.textContent = `Rs. ${m.net_profit}`;
+        monthNetEl.style.color = m.net_profit >= 0 ? '#34d399' : '#f87171';
+
+      } catch(e) { console.error(e); }
+    }
+    
+    // Run everything
+    loadSummary();
+    loadProducts();
+    loadExpenses();
+    loadProfitChart();
+    loadProductsChart();
+    loadExpenseChart();
+    loadPredictions();
+    loadPeriodSummary();
+  </script>
+<script>
+  // ── Auth Guard ──────────────────────────
+  (function checkAuth() {
+    const userStr = localStorage.getItem('user');
+    if (!userStr) {
+      window.location.href = 'login.html';
+      return;
+    }
+
+    try {
+      const user = JSON.parse(userStr);
+      if (!user || !user.role) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      // ── Role-based page access ──
+      const page        = window.location.pathname
+                            .split('/').pop();
+      const staffOnly   = ['index.html','sales.html',
+                            'billing.html'];
+      const managerUp   = ['products.html',
+                            'expenses.html'];
+      const ownerOnly   = ['reports.html'];
+
+      if (ownerOnly.includes(page) &&
+          user.role !== 'owner') {
+        alert('⛔ This page is for owners only!');
+        window.location.href = 'index.html';
+        return;
+      }
+
+      if (managerUp.includes(page) &&
+          user.role === 'staff') {
+        alert('⛔ You do not have access to this page!');
+        window.location.href = 'index.html';
+        return;
+      }
+
+      // ── Show user info in navbar ──
+      const nav = document.querySelector('.nav-links');
+      if (nav) {
+        const roleBadge =
+          user.role === 'owner'   ? '👑' :
+          user.role === 'manager' ? '🔧' : '👤';
+
+        const roleColor =
+          user.role === 'owner'   ? '#fbbf24' :
+          user.role === 'manager' ? '#60a5fa' : '#a78bfa';
+
+        nav.insertAdjacentHTML('beforeend', `
+          <div style="display:flex;align-items:center;
+               gap:10px;margin-left:12px;padding-left:12px;
+               border-left:1px solid rgba(255,255,255,0.1);">
+            <div style="text-align:right;">
+              <div style="font-size:12px;font-weight:700;
+                   color:white;">
+                ${roleBadge} ${user.full_name}
+              </div>
+              <div style="font-size:10px;
+                   color:${roleColor};
+                   text-transform:uppercase;
+                   letter-spacing:0.5px;
+                   font-weight:600;">
+                ${user.role}
+              </div>
+            </div>
+            <button onclick="doLogout()" style="
+              padding:6px 14px;border-radius:8px;
+              background:rgba(239,68,68,0.15);
+              border:1px solid rgba(239,68,68,0.3);
+              color:#f87171;font-size:12px;
+              font-weight:700;cursor:pointer;
+              font-family:'Inter',sans-serif;
+              transition:all 0.2s;">
+              Logout
+            </button>
+          </div>`);
+      }
+
+    } catch(e) {
+      localStorage.clear();
+      window.location.href = 'login.html';
+    }
+  })();
+
+async function doLogout() {
+    try {
+      const token = localStorage.getItem('token');
+      await fetch('http://localhost:5000/api/auth/logout', {
+        method : 'POST',
+        headers: { 'X-Auth-Token': token || '' }
+      });
+    } catch(e) {}
+    localStorage.clear();
+    window.location.href = 'login.html';
+  }
+</script>
+  <script>
+    // ── Collapsible Section Toggle ──
+    function toggleSection(sectionId, arrowId) {
+      const section = document.getElementById(sectionId);
+      const arrow   = document.getElementById(arrowId);
+      section.classList.toggle('collapsed');
+      arrow.classList.toggle('collapsed');
+    }
+
+    // ── Hamburger Menu Toggle ──
+    function toggleMenu() {
+      const nav = document.getElementById('nav_links');
+      const btn = document.getElementById('hamburger_btn');
+      nav.classList.toggle('open');
+      btn.classList.toggle('open');
+    }
+    // Close menu when a link is clicked
+    document.querySelectorAll('.nav-links a').forEach(link => {
+      link.addEventListener('click', () => {
+        document.getElementById('nav_links').classList.remove('open');
+        document.getElementById('hamburger_btn').classList.remove('open');
+      });
+    });
+    // Close menu when clicking outside
+    document.addEventListener('click', function(e) {
+      const nav = document.getElementById('nav_links');
+      const btn = document.getElementById('hamburger_btn');
+      if (!nav.contains(e.target) && !btn.contains(e.target)) {
+        nav.classList.remove('open');
+        btn.classList.remove('open');
+      }
+    });
+  </script>
+</body>
+</html>

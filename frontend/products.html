@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Products | Shop Manager</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      background: linear-gradient(135deg,
+        #0a0e27 0%, #0d1b4b 25%,
+        #0a1628 50%, #0d2137 75%, #0a0e27 100%);
+      background-attachment: fixed;
+      color: #e2e8f0;
+    }
+    body::before {
+      content: '';
+      position: fixed; top: -50%; left: -50%;
+      width: 200%; height: 200%;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(26,86,219,0.15) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(139,92,246,0.1) 0%, transparent 50%);
+      pointer-events: none; z-index: 0;
+    }
+    .navbar {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(10,14,39,0.7);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      padding: 0 30px; height: 65px;
+      display: flex; align-items: center;
+      justify-content: space-between;
+    }
+    .navbar .logo {
+      font-size: 20px; font-weight: 800;
+      background: linear-gradient(135deg, #60a5fa, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .navbar .logo span {
+      background: none;
+      -webkit-text-fill-color: rgba(255,255,255,0.5);
+      font-weight: 400; font-size: 16px;
+    }
+    .nav-links { display: flex; gap: 4px; }
+    .nav-links a {
+      color: rgba(255,255,255,0.6);
+      text-decoration: none; padding: 8px 16px;
+      border-radius: 8px; font-size: 14px;
+      font-weight: 500; transition: all 0.2s;
+    }
+    .nav-links a:hover { background: rgba(255,255,255,0.08); color: white; }
+    .nav-links a.active {
+      background: rgba(96,165,250,0.15); color: #60a5fa;
+      border: 1px solid rgba(96,165,250,0.3);
+    }
+    .page {
+      max-width: 1200px; margin: 0 auto;
+      padding: 30px 20px; position: relative; z-index: 1;
+    }
+    .page-header { margin-bottom: 24px; }
+    .page-header h1 { font-size: 26px; font-weight: 800; color: white; }
+    .page-header p { color: rgba(255,255,255,0.45); font-size: 14px; margin-top: 6px; }
+    .section-divider {
+      display: flex; align-items: center;
+      gap: 16px; margin: 28px 0 16px;
+    }
+    .section-divider h2 {
+      font-size: 12px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 1.5px;
+      color: rgba(255,255,255,0.4); white-space: nowrap;
+    }
+    .section-divider::after {
+      content: ''; flex: 1; height: 1px;
+      background: linear-gradient(90deg,
+        rgba(96,165,250,0.5), rgba(139,92,246,0.3), transparent);
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 20px; align-items: start;
+    }
+    .glass-card {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(20px);
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+    .card-header {
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .card-header h2 { font-size: 15px; font-weight: 700; color: white; }
+    .card-body { padding: 20px 24px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label {
+      display: block; font-size: 12px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.8px;
+      color: rgba(255,255,255,0.45); margin-bottom: 8px;
+    }
+    .form-group input,
+    .form-group select {
+      width: 100%; padding: 11px 14px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px; font-size: 14px;
+      color: white; outline: none; transition: all 0.2s;
+      font-family: 'Inter', sans-serif;
+    }
+    .form-group input::placeholder { color: rgba(255,255,255,0.25); }
+    .form-group input:focus,
+    .form-group select:focus {
+      border-color: rgba(96,165,250,0.5);
+      background: rgba(96,165,250,0.08);
+      box-shadow: 0 0 0 3px rgba(96,165,250,0.1);
+    }
+    .form-group select option { background: #0d1b4b; color: white; }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .profit-preview {
+      background: rgba(96,165,250,0.08);
+      border: 1px solid rgba(96,165,250,0.2);
+      border-radius: 10px; padding: 14px 18px;
+      margin-bottom: 18px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .profit-preview span { font-size: 13px; color: rgba(255,255,255,0.5); }
+    .profit-preview strong { font-size: 20px; font-weight: 800; color: #60a5fa; }
+    .btn-primary {
+      width: 100%; padding: 13px;
+      background: linear-gradient(135deg, #1a56db, #7c3aed);
+      color: white; border: none; border-radius: 10px;
+      font-size: 15px; font-weight: 700; cursor: pointer;
+      transition: all 0.3s; font-family: 'Inter', sans-serif;
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(26,86,219,0.4);
+    }
+    .alert {
+      padding: 12px 16px; border-radius: 10px;
+      font-size: 13px; margin-top: 14px; display: none;
+    }
+    .alert.success {
+      background: rgba(16,185,129,0.15); color: #34d399;
+      border: 1px solid rgba(16,185,129,0.3);
+    }
+    .alert.error {
+      background: rgba(239,68,68,0.15); color: #f87171;
+      border: 1px solid rgba(239,68,68,0.3);
+    }
+
+    /* ── Table ── */
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead tr { background: rgba(255,255,255,0.04); }
+    thead th {
+      padding: 12px 10px; text-align: left;
+      font-size: 11px; font-weight: 700;
+      color: rgba(255,255,255,0.4);
+      text-transform: uppercase; letter-spacing: 0.8px;
+    }
+    tbody tr {
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      transition: background 0.15s;
+    }
+    tbody tr:hover { background: rgba(255,255,255,0.03); }
+    tbody td { padding: 11px 10px; color: rgba(255,255,255,0.8); }
+
+    .badge {
+      display: inline-block; padding: 4px 10px;
+      border-radius: 20px; font-size: 11px; font-weight: 700;
+    }
+    .badge.good {
+      background: rgba(16,185,129,0.15); color: #34d399;
+      border: 1px solid rgba(16,185,129,0.25);
+    }
+    .badge.low {
+      background: rgba(239,68,68,0.15); color: #f87171;
+      border: 1px solid rgba(239,68,68,0.25);
+    }
+    .profit-cell { color: #34d399; font-weight: 700; }
+
+    /* ── Action Buttons ── */
+    .action-btns { display: flex; gap: 6px; }
+    .btn-action {
+      padding: 5px 10px; border: none; border-radius: 6px;
+      font-size: 11px; font-weight: 700; cursor: pointer;
+      transition: all 0.2s; font-family: 'Inter', sans-serif;
+      white-space: nowrap;
+    }
+    .btn-restock {
+      background: rgba(16,185,129,0.15); color: #34d399;
+      border: 1px solid rgba(16,185,129,0.3);
+    }
+    .btn-restock:hover {
+      background: rgba(16,185,129,0.3);
+      transform: translateY(-1px);
+    }
+    .btn-edit {
+      background: rgba(96,165,250,0.15); color: #60a5fa;
+      border: 1px solid rgba(96,165,250,0.3);
+    }
+    .btn-edit:hover {
+      background: rgba(96,165,250,0.3);
+      transform: translateY(-1px);
+    }
+    .btn-delete {
+      background: rgba(239,68,68,0.15); color: #f87171;
+      border: 1px solid rgba(239,68,68,0.3);
+    }
+    .btn-delete:hover {
+      background: rgba(239,68,68,0.3);
+      transform: translateY(-1px);
+    }
+
+    /* ── Modal Overlay ── */
+    .modal-overlay {
+      display: none;
+      position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(4px);
+      z-index: 999;
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal {
+      background: #0d1b4b;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      padding: 28px;
+      width: 420px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      position: relative;
+    }
+    .modal h3 {
+      font-size: 18px; font-weight: 700;
+      color: white; margin-bottom: 20px;
+    }
+    .modal-close {
+      position: absolute; top: 16px; right: 16px;
+      background: rgba(255,255,255,0.1);
+      border: none; color: white; width: 30px; height: 30px;
+      border-radius: 50%; cursor: pointer; font-size: 14px;
+    }
+    .modal-close:hover { background: rgba(255,255,255,0.2); }
+    .modal .form-group { margin-bottom: 14px; }
+    .modal-btns {
+      display: flex; gap: 10px; margin-top: 20px;
+    }
+    .modal-btns button {
+      flex: 1; padding: 11px; border: none;
+      border-radius: 10px; font-size: 14px;
+      font-weight: 700; cursor: pointer;
+      font-family: 'Inter', sans-serif;
+    }
+    .btn-confirm-green {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+    }
+    .btn-confirm-blue {
+      background: linear-gradient(135deg, #1a56db, #7c3aed);
+      color: white;
+    }
+    .btn-confirm-red {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: white;
+    }
+    .btn-cancel {
+      background: rgba(255,255,255,0.08);
+      color: rgba(255,255,255,0.7);
+    }
+
+    .empty-state {
+      text-align: center; padding: 50px 20px;
+      color: rgba(255,255,255,0.25);
+    }
+    .empty-state .icon { font-size: 40px; margin-bottom: 12px; }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="logo">🏪 Shop Manager <span>| Micro Business</span></div>
+    <div class="nav-links">
+      <a href="index.html">Dashboard</a>
+      <a href="products.html" class="active">Products</a>
+      <a href="sales.html">Daily Sales</a>
+      <a href="expenses.html">Expenses</a>
+      <a href="reports.html">📄 Reports</a>
+      <a href="billing.html">🛒 Billing</a>
+      <a href="admin.html">👥 Staff</a>
+    </div>
+  </nav>
+
+  <div class="page">
+    <div class="page-header">
+      <h1>📦 Products</h1>
+      <p>Add, restock, edit and manage all your shop products</p>
+    </div>
+
+    <div class="layout">
+      <!-- Add Product Form -->
+      <div class="glass-card">
+        <div class="card-header">
+          <h2>➕ Add New Product</h2>
+        </div>
+        <div class="card-body">
+          <div class="form-group">
+            <label>Product Name</label>
+            <input type="text" id="name" placeholder="e.g. Basmati Rice 1kg"/>
+          </div>
+          <div class="form-group">
+            <label>Category</label>
+            <select id="category">
+              <option value="Grocery">Grocery</option>
+              <option value="Beverages">Beverages</option>
+              <option value="Snacks">Snacks</option>
+              <option value="Dairy">Dairy</option>
+              <option value="Personal Care">Personal Care</option>
+              <option value="Household">Household</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="two-col">
+            <div class="form-group">
+              <label>Buying Price (Rs.)</label>
+              <input type="number" id="purchase_price" placeholder="180" min="0" step="0.01"/>
+            </div>
+            <div class="form-group">
+              <label>Selling Price (Rs.)</label>
+              <input type="number" id="selling_price" placeholder="220" min="0" step="0.01"/>
+            </div>
+          </div>
+          <div class="two-col">
+            <div class="form-group">
+              <label>Current Stock</label>
+              <input type="number" id="current_stock" placeholder="50" min="0"/>
+            </div>
+            <div class="form-group">
+              <label>Reorder When Below</label>
+              <input type="number" id="reorder_level" placeholder="10" min="0"/>
+            </div>
+          </div>
+          <div class="profit-preview">
+            <span>💰 Profit per unit sold:</span>
+            <strong id="profit_display">Rs. 0</strong>
+          </div>
+          <button class="btn-primary" onclick="addProduct()">
+            Add Product to Shop
+          </button>
+          <div class="alert" id="alert_msg"></div>
+        </div>
+      </div>
+
+      <!-- Products Table -->
+      <div class="glass-card">
+        <div class="card-header">
+          <h2>📋 All Products in Your Shop</h2>
+        </div>
+        <div class="card-body" style="padding:0;">
+          <div class="table-wrap" id="products_container">
+            <div class="empty-state">
+              <div class="icon">📦</div>
+              <p>Loading products...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── RESTOCK MODAL ── -->
+  <div class="modal-overlay" id="restock_modal">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal('restock_modal')">✕</button>
+      <h3>📦 Restock Product</h3>
+      <p style="font-size:13px; color:rgba(255,255,255,0.5);
+         margin-bottom:18px;" id="restock_product_name"></p>
+      <div class="form-group">
+        <label>Current Stock</label>
+        <input type="number" id="restock_current"
+               readonly style="opacity:0.6; cursor:not-allowed;"/>
+      </div>
+      <div class="form-group">
+        <label>Units to Add</label>
+        <input type="number" id="restock_qty"
+               placeholder="e.g. 50" min="1"
+               oninput="updateRestockPreview()"/>
+      </div>
+      <div style="background:rgba(16,185,129,0.08);
+           border:1px solid rgba(16,185,129,0.2);
+           border-radius:10px; padding:12px 16px;
+           display:flex; justify-content:space-between;
+           align-items:center; margin-bottom:4px;">
+        <span style="font-size:13px; color:rgba(255,255,255,0.5);">
+          New stock will be:
+        </span>
+        <strong id="restock_preview"
+                style="font-size:18px; font-weight:800; color:#34d399;">
+          0 units
+        </strong>
+      </div>
+      <div class="modal-btns">
+        <button class="btn-confirm-green"
+                onclick="confirmRestock()">
+          ✅ Add Stock
+        </button>
+        <button class="btn-cancel"
+                onclick="closeModal('restock_modal')">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── EDIT MODAL ── -->
+  <div class="modal-overlay" id="edit_modal">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal('edit_modal')">✕</button>
+      <h3>✏️ Edit Product</h3>
+      <input type="hidden" id="edit_id"/>
+      <div class="form-group">
+        <label>Product Name</label>
+        <input type="text" id="edit_name"/>
+      </div>
+      <div class="form-group">
+        <label>Category</label>
+        <select id="edit_category">
+          <option value="Grocery">Grocery</option>
+          <option value="Beverages">Beverages</option>
+          <option value="Snacks">Snacks</option>
+          <option value="Dairy">Dairy</option>
+          <option value="Personal Care">Personal Care</option>
+          <option value="Household">Household</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="two-col">
+        <div class="form-group">
+          <label>Buying Price (Rs.)</label>
+          <input type="number" id="edit_purchase" min="0" step="0.01"/>
+        </div>
+        <div class="form-group">
+          <label>Selling Price (Rs.)</label>
+          <input type="number" id="edit_selling" min="0" step="0.01"/>
+        </div>
+      </div>
+      <div class="two-col">
+        <div class="form-group">
+          <label>Current Stock</label>
+          <input type="number" id="edit_stock" min="0"/>
+        </div>
+        <div class="form-group">
+          <label>Reorder Level</label>
+          <input type="number" id="edit_reorder" min="0"/>
+        </div>
+      </div>
+      <div class="modal-btns">
+        <button class="btn-confirm-blue"
+                onclick="confirmEdit()">
+          💾 Save Changes
+        </button>
+        <button class="btn-cancel"
+                onclick="closeModal('edit_modal')">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DELETE MODAL ── -->
+  <div class="modal-overlay" id="delete_modal">
+    <div class="modal" style="width:380px;">
+      <button class="modal-close"
+              onclick="closeModal('delete_modal')">✕</button>
+      <h3>🗑️ Delete Product</h3>
+      <p style="font-size:14px; color:rgba(255,255,255,0.6);
+         margin-bottom:8px;">
+        Are you sure you want to delete:
+      </p>
+      <p id="delete_product_name"
+         style="font-size:16px; font-weight:700;
+                color:#f87171; margin-bottom:18px;">
+      </p>
+      <div style="background:rgba(239,68,68,0.08);
+           border:1px solid rgba(239,68,68,0.2);
+           border-radius:10px; padding:12px 16px;
+           font-size:13px; color:rgba(255,255,255,0.5);
+           margin-bottom:20px;">
+        ⚠️ This will permanently delete the product
+        and cannot be undone!
+      </div>
+      <div class="modal-btns">
+        <button class="btn-confirm-red"
+                onclick="confirmDelete()">
+          🗑️ Yes, Delete
+        </button>
+        <button class="btn-cancel"
+                onclick="closeModal('delete_modal')">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+<script src="error-handler.js"></script>
+  <script>
+    const API = 'http://localhost:5000';
+    let currentProductId = null;
+    let currentStock     = 0;
+
+    // ── Live profit calculator ──
+    document.getElementById('purchase_price')
+      .addEventListener('input', updateProfit);
+    document.getElementById('selling_price')
+      .addEventListener('input', updateProfit);
+
+    function updateProfit() {
+      const buy    = parseFloat(
+        document.getElementById('purchase_price').value) || 0;
+      const sell   = parseFloat(
+        document.getElementById('selling_price').value) || 0;
+      const profit = sell - buy;
+      const el     = document.getElementById('profit_display');
+      el.textContent = `Rs. ${profit.toFixed(2)}`;
+      el.style.color = profit >= 0 ? '#34d399' : '#f87171';
+    }
+
+    // ── Add Product ──
+    async function addProduct() {
+      const name     = document.getElementById('name').value.trim();
+      const buy      = document.getElementById('purchase_price').value;
+      const sell     = document.getElementById('selling_price').value;
+      const stock    = document.getElementById('current_stock').value || 0;
+      const reorder  = document.getElementById('reorder_level').value || 10;
+      const category = document.getElementById('category').value;
+
+      // Validate using ErrorHandler
+const err = ErrorHandler.validate([
+  { id: 'name',           label: 'Product name' },
+  { id: 'purchase_price', label: 'Buying price',
+    type: 'number', min: 0 },
+  { id: 'selling_price',  label: 'Selling price',
+    type: 'number', min: 0 },
+]);
+if (err) {
+  ErrorHandler.toast(err, 'error');
+  return;
+}
+if (parseFloat(sell) < parseFloat(buy)) {
+  ErrorHandler.toast(
+    'Selling price cannot be less than buying price!',
+    'warning'
+  );
+  return;
+}
+      try {
+        const res = await fetch(`${API}/api/products`, {
+          method : 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body   : JSON.stringify({
+            name, category,
+            purchase_price: buy,
+            selling_price : sell,
+            current_stock : stock,
+            reorder_level : reorder
+          })
+        });
+        const json = await res.json();
+        if (json.success) {
+          showAlert(`✅ "${name}" added successfully!`, 'success');
+          ['name','purchase_price','selling_price',
+           'current_stock','reorder_level'].forEach(id =>
+            document.getElementById(id).value = '');
+          document.getElementById('profit_display').textContent = 'Rs. 0';
+          loadProducts();
+        } else {
+          showAlert(`❌ ${json.error}`, 'error');
+        }
+      } catch(e) {
+        showAlert('❌ Cannot connect to server!', 'error');
+      }
+    }
+
+    // ── Load Products Table ──
+    async function loadProducts() {
+      try {
+        const res  = await fetch(`${API}/api/products`);
+        const json = await res.json();
+
+        if (!json.data || !json.data.length) {
+          document.getElementById('products_container').innerHTML = `
+            <div class="empty-state">
+              <div class="icon">📦</div>
+              <p>No products yet. Add your first product!</p>
+            </div>`;
+          return;
+        }
+
+        const rows = json.data.map(p => {
+          const isLow = p.current_stock <= p.reorder_level;
+          return `
+            <tr>
+              <td>
+                <strong style="color:white;">${p.name}</strong>
+              </td>
+              <td>${p.category}</td>
+              <td>Rs. ${p.purchase_price}</td>
+              <td>Rs. ${p.selling_price}</td>
+              <td>
+                <span class="badge ${isLow ? 'low' : 'good'}">
+                  ${p.current_stock} ${isLow ? '⚠️ Low' : '✅ OK'}
+                </span>
+              </td>
+              <td class="profit-cell">
+                Rs. ${p.profit_per_unit}
+              </td>
+              <td>
+                <div class="action-btns">
+                  <button class="btn-action btn-restock"
+                    onclick="openRestock(${p.id}, '${p.name.replace(/'/g, "\\'")}', ${p.current_stock})">
+                    +Stock
+                  </button>
+                  <button class="btn-action btn-edit"
+                    onclick="openEdit(${p.id}, '${p.name.replace(/'/g, "\\'")}', '${p.category}', ${p.purchase_price}, ${p.selling_price}, ${p.current_stock}, ${p.reorder_level})">
+                    ✏️ Edit
+                  </button>
+                  <button class="btn-action btn-delete"
+                    onclick="openDelete(${p.id}, '${p.name.replace(/'/g, "\\'")}')">
+                    🗑️
+                  </button>
+                </div>
+              </td>
+            </tr>`;
+        }).join('');
+
+        document.getElementById('products_container').innerHTML = `
+          <table>
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Category</th>
+                <th>Buy Price</th>
+                <th>Sell Price</th>
+                <th>Stock</th>
+                <th>Profit/Unit</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>`;
+      } catch(e) {
+        document.getElementById('products_container').innerHTML = `
+          <div class="empty-state">
+            <div class="icon">⚠️</div>
+            <p>Could not load. Is server running?</p>
+          </div>`;
+      }
+    }
+
+    // ── RESTOCK Functions ──
+    function openRestock(id, name, stock) {
+      currentProductId = id;
+      currentStock     = stock;
+      document.getElementById('restock_product_name').textContent =
+        `Product: ${name}`;
+      document.getElementById('restock_current').value = stock;
+      document.getElementById('restock_qty').value     = '';
+      document.getElementById('restock_preview').textContent =
+        `${stock} units`;
+      document.getElementById('restock_modal')
+        .classList.add('active');
+    }
+
+    function updateRestockPreview() {
+      const qty     = parseInt(
+        document.getElementById('restock_qty').value) || 0;
+      const newQty  = currentStock + qty;
+      document.getElementById('restock_preview').textContent =
+        `${newQty} units`;
+    }
+
+    async function confirmRestock() {
+      const qty = parseInt(
+        document.getElementById('restock_qty').value);
+
+      if (!qty || qty <= 0) {
+        alert('Please enter a valid quantity to add!');
+        return;
+      }
+
+      const newStock = currentStock + qty;
+
+      try {
+        const res = await fetch(
+          `${API}/api/products/${currentProductId}`,
+          {
+            method : 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body   : JSON.stringify({ current_stock: newStock })
+          }
+        );
+        const json = await res.json();
+        if (json.success) {
+          closeModal('restock_modal');
+          showAlert(
+            `✅ Stock updated! Added ${qty} units. New total: ${newStock}`,
+            'success'
+          );
+          loadProducts();
+        }
+      } catch(e) {
+        alert('Cannot connect to server!');
+      }
+    }
+
+    // ── EDIT Functions ──
+    function openEdit(id, name, category, purchase,
+                      selling, stock, reorder) {
+      currentProductId = id;
+      document.getElementById('edit_id').value        = id;
+      document.getElementById('edit_name').value      = name;
+      document.getElementById('edit_category').value  = category;
+      document.getElementById('edit_purchase').value  = purchase;
+      document.getElementById('edit_selling').value   = selling;
+      document.getElementById('edit_stock').value     = stock;
+      document.getElementById('edit_reorder').value   = reorder;
+      document.getElementById('edit_modal')
+        .classList.add('active');
+    }
+
+    async function confirmEdit() {
+      const id       = document.getElementById('edit_id').value;
+      const name     = document.getElementById('edit_name').value.trim();
+      const category = document.getElementById('edit_category').value;
+      const purchase = document.getElementById('edit_purchase').value;
+      const selling  = document.getElementById('edit_selling').value;
+      const stock    = document.getElementById('edit_stock').value;
+      const reorder  = document.getElementById('edit_reorder').value;
+
+      if (!name || !purchase || !selling) {
+        alert('Please fill in all required fields!');
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API}/api/products/${id}`, {
+          method : 'PUT',
+          headers: {'Content-Type': 'application/json'},
+          body   : JSON.stringify({
+            name, category,
+            purchase_price: purchase,
+            selling_price : selling,
+            current_stock : stock,
+            reorder_level : reorder
+          })
+        });
+        const json = await res.json();
+        if (json.success) {
+          closeModal('edit_modal');
+          showAlert(`✅ "${name}" updated successfully!`, 'success');
+          loadProducts();
+        }
+      } catch(e) {
+        alert('Cannot connect to server!');
+      }
+    }
+
+    // ── DELETE Functions ──
+    function openDelete(id, name) {
+      currentProductId = id;
+      document.getElementById('delete_product_name').textContent =
+        name;
+      document.getElementById('delete_modal')
+        .classList.add('active');
+    }
+
+    async function confirmDelete() {
+      try {
+        const res = await fetch(
+          `${API}/api/products/${currentProductId}`,
+          { method: 'DELETE' }
+        );
+        const json = await res.json();
+        if (json.success) {
+          closeModal('delete_modal');
+          showAlert('🗑️ Product deleted successfully!', 'success');
+          loadProducts();
+        }
+      } catch(e) {
+        alert('Cannot connect to server!');
+      }
+    }
+
+    // ── Modal Helpers ──
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('active');
+    }
+
+    // Close modal on overlay click
+    document.querySelectorAll('.modal-overlay')
+      .forEach(overlay => {
+        overlay.addEventListener('click', function(e) {
+          if (e.target === this) {
+            this.classList.remove('active');
+          }
+        });
+      });
+
+    function showAlert(msg, type) {
+      const el = document.getElementById('alert_msg');
+      el.textContent   = msg;
+      el.className     = `alert ${type}`;
+      el.style.display = 'block';
+      setTimeout(() => el.style.display = 'none', 4000);
+    }
+
+    loadProducts();
+  </script>
+<script>
+  // ── Auth Guard ──────────────────────────
+  (function checkAuth() {
+    const userStr = localStorage.getItem('user');
+    if (!userStr) {
+      window.location.href = 'login.html';
+      return;
+    }
+
+    try {
+      const user = JSON.parse(userStr);
+      if (!user || !user.role) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      // ── Role-based page access ──
+      const page        = window.location.pathname
+                            .split('/').pop();
+      const staffOnly   = ['index.html','sales.html',
+                            'billing.html'];
+      const managerUp   = ['products.html',
+                            'expenses.html'];
+      const ownerOnly   = ['reports.html'];
+
+      if (ownerOnly.includes(page) &&
+          user.role !== 'owner') {
+        alert('⛔ This page is for owners only!');
+        window.location.href = 'index.html';
+        return;
+      }
+
+      if (managerUp.includes(page) &&
+          user.role === 'staff') {
+        alert('⛔ You do not have access to this page!');
+        window.location.href = 'index.html';
+        return;
+      }
+
+      // ── Show user info in navbar ──
+      const nav = document.querySelector('.nav-links');
+      if (nav) {
+        const roleBadge =
+          user.role === 'owner'   ? '👑' :
+          user.role === 'manager' ? '🔧' : '👤';
+
+        const roleColor =
+          user.role === 'owner'   ? '#fbbf24' :
+          user.role === 'manager' ? '#60a5fa' : '#a78bfa';
+
+        nav.insertAdjacentHTML('beforeend', `
+          <div style="display:flex;align-items:center;
+               gap:10px;margin-left:12px;padding-left:12px;
+               border-left:1px solid rgba(255,255,255,0.1);">
+            <div style="text-align:right;">
+              <div style="font-size:12px;font-weight:700;
+                   color:white;">
+                ${roleBadge} ${user.full_name}
+              </div>
+              <div style="font-size:10px;
+                   color:${roleColor};
+                   text-transform:uppercase;
+                   letter-spacing:0.5px;
+                   font-weight:600;">
+                ${user.role}
+              </div>
+            </div>
+            <button onclick="doLogout()" style="
+              padding:6px 14px;border-radius:8px;
+              background:rgba(239,68,68,0.15);
+              border:1px solid rgba(239,68,68,0.3);
+              color:#f87171;font-size:12px;
+              font-weight:700;cursor:pointer;
+              font-family:'Inter',sans-serif;
+              transition:all 0.2s;">
+              Logout
+            </button>
+          </div>`);
+      }
+
+    } catch(e) {
+      localStorage.clear();
+      window.location.href = 'login.html';
+    }
+  })();
+
+  async function doLogout() {
+    try {
+      const token = localStorage.getItem('token');
+      await fetch('http://localhost:5000/api/auth/logout', {
+        method : 'POST',
+        headers: { 'X-Auth-Token': token || '' }
+      });
+    } catch(e) {}
+    localStorage.clear();
+    window.location.href = 'login.html';
+  }
+</script>
+</body>
+</html>

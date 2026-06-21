@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Daily Sales | Shop Manager</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      background: linear-gradient(135deg,
+        #0a0e27 0%, #0d1b4b 25%,
+        #0a1628 50%, #0d2137 75%, #0a0e27 100%);
+      background-attachment: fixed;
+      color: #e2e8f0;
+    }
+    body::before {
+      content: '';
+      position: fixed; top: -50%; left: -50%;
+      width: 200%; height: 200%;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(26,86,219,0.15) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(139,92,246,0.1) 0%, transparent 50%);
+      pointer-events: none; z-index: 0;
+    }
+    .navbar {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(10,14,39,0.7);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      padding: 0 30px; height: 65px;
+      display: flex; align-items: center;
+      justify-content: space-between;
+    }
+    .navbar .logo {
+      font-size: 20px; font-weight: 800;
+      background: linear-gradient(135deg, #60a5fa, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .navbar .logo span {
+      background: none;
+      -webkit-text-fill-color: rgba(255,255,255,0.5);
+      font-weight: 400; font-size: 16px;
+    }
+    .nav-links { display: flex; gap: 4px; }
+    .nav-links a {
+      color: rgba(255,255,255,0.6);
+      text-decoration: none; padding: 8px 16px;
+      border-radius: 8px; font-size: 14px;
+      font-weight: 500; transition: all 0.2s;
+    }
+    .nav-links a:hover { background: rgba(255,255,255,0.08); color: white; }
+    .nav-links a.active {
+      background: rgba(96,165,250,0.15);
+      color: #60a5fa;
+      border: 1px solid rgba(96,165,250,0.3);
+    }
+    .page {
+      max-width: 1200px; margin: 0 auto;
+      padding: 30px 20px; position: relative; z-index: 1;
+    }
+    .page-header { margin-bottom: 24px; }
+    .page-header h1 { font-size: 26px; font-weight: 800; color: white; }
+    .page-header p { color: rgba(255,255,255,0.45); font-size: 14px; margin-top: 6px; }
+    .section-divider {
+      display: flex; align-items: center;
+      gap: 16px; margin: 24px 0 16px;
+    }
+    .section-divider h2 {
+      font-size: 12px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 1.5px;
+      color: rgba(255,255,255,0.4); white-space: nowrap;
+    }
+    .section-divider::after {
+      content: ''; flex: 1; height: 1px;
+      background: linear-gradient(90deg,
+        rgba(96,165,250,0.5), rgba(139,92,246,0.3), transparent);
+    }
+    .summary-bar {
+      display: grid; grid-template-columns: repeat(4,1fr);
+      gap: 14px; margin-bottom: 24px;
+    }
+    .summary-card {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(20px);
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.08);
+      padding: 18px 20px; position: relative; overflow: hidden;
+    }
+    .summary-card::before {
+      content: ''; position: absolute;
+      top: 0; left: 0; right: 0; height: 3px;
+      background: var(--accent);
+      border-radius: 14px 14px 0 0;
+    }
+    .summary-card.blue   { --accent: linear-gradient(90deg,#3b82f6,#60a5fa); }
+    .summary-card.green  { --accent: linear-gradient(90deg,#10b981,#34d399); }
+    .summary-card.orange { --accent: linear-gradient(90deg,#f59e0b,#fbbf24); }
+    .summary-card.purple { --accent: linear-gradient(90deg,#8b5cf6,#a78bfa); }
+    .s-label {
+      font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 1px;
+      color: rgba(255,255,255,0.4);
+    }
+    .s-value {
+      font-size: 22px; font-weight: 800;
+      color: white; margin-top: 6px;
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: 400px 1fr;
+      gap: 20px; align-items: start;
+    }
+    .glass-card {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(20px);
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+    .card-header {
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .card-header h2 { font-size: 15px; font-weight: 700; color: white; }
+    .card-body { padding: 20px 24px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label {
+      display: block; font-size: 12px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.8px;
+      color: rgba(255,255,255,0.45); margin-bottom: 8px;
+    }
+    .form-group input,
+    .form-group select {
+      width: 100%; padding: 11px 14px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px; font-size: 14px;
+      color: white; outline: none; transition: all 0.2s;
+      font-family: 'Inter', sans-serif;
+    }
+    .form-group input::placeholder { color: rgba(255,255,255,0.25); }
+    .form-group input:focus,
+    .form-group select:focus {
+      border-color: rgba(96,165,250,0.5);
+      background: rgba(96,165,250,0.08);
+      box-shadow: 0 0 0 3px rgba(96,165,250,0.1);
+    }
+    .form-group select option { background: #0d1b4b; color: white; }
+    .revenue-preview {
+      background: rgba(96,165,250,0.08);
+      border: 1px solid rgba(96,165,250,0.2);
+      border-radius: 10px; padding: 14px 18px;
+      margin-bottom: 18px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    }
+    .preview-item { text-align: center; }
+    .preview-label {
+      font-size: 11px; color: rgba(255,255,255,0.4);
+      text-transform: uppercase; letter-spacing: 0.8px;
+    }
+    .preview-value {
+      font-size: 20px; font-weight: 800;
+      color: #60a5fa; margin-top: 4px;
+    }
+    .preview-value.profit { color: #34d399; }
+    .btn-primary {
+      width: 100%; padding: 13px;
+      background: linear-gradient(135deg,#1a56db,#7c3aed);
+      color: white; border: none; border-radius: 10px;
+      font-size: 15px; font-weight: 700; cursor: pointer;
+      transition: all 0.3s; font-family: 'Inter', sans-serif;
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(26,86,219,0.4);
+    }
+    .alert {
+      padding: 12px 16px; border-radius: 10px;
+      font-size: 13px; margin-top: 14px; display: none;
+    }
+    .alert.success {
+      background: rgba(16,185,129,0.15); color: #34d399;
+      border: 1px solid rgba(16,185,129,0.3);
+    }
+    .alert.error {
+      background: rgba(239,68,68,0.15); color: #f87171;
+      border: 1px solid rgba(239,68,68,0.3);
+    }
+    .alert.warning {
+      background: rgba(245,158,11,0.15); color: #fbbf24;
+      border: 1px solid rgba(245,158,11,0.3);
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead tr { background: rgba(255,255,255,0.04); }
+    thead th {
+      padding: 12px 14px; text-align: left;
+      font-size: 11px; font-weight: 700;
+      color: rgba(255,255,255,0.4);
+      text-transform: uppercase; letter-spacing: 0.8px;
+    }
+    tbody tr {
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      transition: background 0.15s;
+    }
+    tbody tr:hover { background: rgba(255,255,255,0.03); }
+    tbody td { padding: 13px 14px; color: rgba(255,255,255,0.8); }
+    .revenue-cell { color: #60a5fa; font-weight: 700; }
+    .empty-state {
+      text-align: center; padding: 50px 20px;
+      color: rgba(255,255,255,0.25);
+    }
+    .empty-state .icon { font-size: 40px; margin-bottom: 12px; }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="logo">🏪 Shop Manager <span>| Micro Business</span></div>
+    <div class="nav-links">
+      <a href="index.html">Dashboard</a>
+      <a href="products.html">Products</a>
+      <a href="sales.html" class="active">Daily Sales</a>
+      <a href="expenses.html">Expenses</a>
+      <a href="reports.html">📄 Reports</a>
+      <a href="billing.html">🛒 Billing</a>
+      <a href="admin.html">👥 Staff</a>
+    </div>
+  </nav>
+
+  <div class="page">
+    <div class="page-header">
+      <h1>💰 Daily Sales</h1>
+      <p>Record every sale and track your daily earnings</p>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="section-divider"><h2>📊 Today's Summary</h2></div>
+    <div class="summary-bar">
+      <div class="summary-card blue">
+        <div class="s-label">Today's Sales</div>
+        <div class="s-value" id="total_sales">0</div>
+      </div>
+      <div class="summary-card green">
+        <div class="s-label">Today's Revenue</div>
+        <div class="s-value" id="total_revenue">Rs. 0</div>
+      </div>
+      <div class="summary-card orange">
+        <div class="s-label">Cost of Goods</div>
+        <div class="s-value" id="total_cost">Rs. 0</div>
+      </div>
+      <div class="summary-card purple">
+        <div class="s-label">Gross Profit</div>
+        <div class="s-value" id="gross_profit">Rs. 0</div>
+      </div>
+    </div>
+
+    <div class="layout">
+      <!-- Record Sale Form -->
+      <div class="glass-card">
+        <div class="card-header">
+          <h2>🛒 Record a Sale</h2>
+        </div>
+        <div class="card-body">
+          <div class="form-group">
+            <label>Search Product</label>
+            <input type="text" id="product_search"
+              placeholder="🔍 Type product name to search..."
+              oninput="filterProducts()" autocomplete="off"/>
+          </div>
+          <div class="form-group">
+            <label>Select Product</label>
+            <select id="product_id" onchange="onProductSelect()">
+              <option value="">-- Choose a product --</option>
+            </select>
+            <div id="search_info" style="font-size:11px;margin-top:4px;display:none;"></div>
+          </div>
+          <div class="form-group">
+            <label>How Many Units Sold?</label>
+            <input type="number" id="quantity_sold"
+              placeholder="e.g. 5" min="1" oninput="updatePreview()"/>
+          </div>
+          <div class="form-group">
+            <label>Selling Price Per Unit (Rs.)</label>
+            <input type="number" id="sale_price"
+              placeholder="Auto-filled from product" oninput="updatePreview()"/>
+          </div>
+          <div class="form-group">
+            <label>Date of Sale</label>
+            <input type="date" id="sale_date"/>
+          </div>
+          <div class="form-group">
+            <label>Notes (optional)</label>
+            <input type="text" id="notes" placeholder="e.g. Evening rush sale"/>
+          </div>
+          <div class="revenue-preview">
+            <div class="preview-item">
+              <div class="preview-label">Total Revenue</div>
+              <div class="preview-value" id="preview_revenue">Rs. 0</div>
+            </div>
+            <div class="preview-item">
+              <div class="preview-label">Your Profit</div>
+              <div class="preview-value profit" id="preview_profit">Rs. 0</div>
+            </div>
+          </div>
+          <button class="btn-primary" onclick="recordSale()">
+            Record This Sale
+          </button>
+          <div class="alert" id="alert_msg"></div>
+        </div>
+      </div>
+
+      <!-- Sales History -->
+      <div class="glass-card">
+        <div class="card-header">
+          <h2>📋 Today's Sales History</h2>
+        </div>
+        <div class="card-body" style="padding:0;">
+          <div id="sales_container">
+            <div class="empty-state">
+              <div class="icon">💰</div>
+              <p>No sales recorded today yet.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+<script src="error-handler.js"></script>
+  <script>
+    const API = 'http://localhost:5000';
+    let allProducts = [];
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('sale_date').value = today;
+
+    async function loadProducts() {
+      try {
+        const res  = await fetch(`${API}/api/products`);
+        const json = await res.json();
+        allProducts = json.data || [];
+        renderProductDropdown(allProducts);
+      } catch(e) { showAlert('Cannot connect to server!', 'error'); }
+    }
+
+    function renderProductDropdown(list) {
+      const select = document.getElementById('product_id');
+      select.innerHTML = '<option value="">-- Choose a product --</option>';
+      if (!list.length) {
+        select.innerHTML += '<option disabled>No products found</option>';
+        return;
+      }
+      list.forEach(p => {
+        const stock = p.current_stock <= p.reorder_level
+          ? `⚠️ Low: ${p.current_stock}` : `Stock: ${p.current_stock}`;
+        select.innerHTML += `
+          <option value="${p.id}"
+            data-price="${p.selling_price}"
+            data-cost="${p.purchase_price}"
+            data-stock="${p.current_stock}">
+            ${p.name} (${stock})
+          </option>`;
+      });
+    }
+
+    function filterProducts() {
+      const q      = document.getElementById('product_search').value.toLowerCase().trim();
+      const infoEl = document.getElementById('search_info');
+      if (!q) { renderProductDropdown(allProducts); infoEl.style.display='none'; return; }
+      const filtered = allProducts.filter(p =>
+        p.name.toLowerCase().includes(q) ||
+        p.category.toLowerCase().includes(q));
+      renderProductDropdown(filtered);
+      infoEl.style.display = 'block';
+      infoEl.textContent   = filtered.length > 0
+        ? `✅ Found ${filtered.length} product(s)`
+        : `❌ No products match "${q}"`;
+      infoEl.style.color = filtered.length > 0 ? '#34d399' : '#f87171';
+      if (filtered.length === 1) {
+        document.getElementById('product_id').value = filtered[0].id;
+        onProductSelect();
+      }
+    }
+
+    function onProductSelect() {
+      const select = document.getElementById('product_id');
+      const option = select.options[select.selectedIndex];
+      if (!option.value) return;
+      document.getElementById('sale_price').value = option.getAttribute('data-price');
+      updatePreview();
+    }
+
+    function updatePreview() {
+      const select = document.getElementById('product_id');
+      const option = select.options[select.selectedIndex];
+      const qty    = parseFloat(document.getElementById('quantity_sold').value) || 0;
+      const price  = parseFloat(document.getElementById('sale_price').value) || 0;
+      const cost   = parseFloat(option?.getAttribute('data-cost')) || 0;
+      const rev    = qty * price;
+      const prof   = qty * (price - cost);
+      document.getElementById('preview_revenue').textContent = `Rs. ${rev.toFixed(2)}`;
+      const profEl = document.getElementById('preview_profit');
+      profEl.textContent = `Rs. ${prof.toFixed(2)}`;
+      profEl.style.color = prof >= 0 ? '#34d399' : '#f87171';
+    }
+
+    async function recordSale() {
+      const product_id = document.getElementById('product_id').value;
+      const quantity   = document.getElementById('quantity_sold').value;
+      const sale_price = document.getElementById('sale_price').value;
+      const date       = document.getElementById('sale_date').value;
+      const notes      = document.getElementById('notes').value;
+      if (!product_id || !quantity || !sale_price) {
+        showAlert('Please select a product, quantity and price.', 'error');
+        return;
+      }
+      try {
+        const res = await fetch(`${API}/api/sales`, {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({product_id,date,notes,quantity_sold:quantity,sale_price})
+        });
+        const json = await res.json();
+        if (json.success) {
+          showAlert('✅ Sale recorded successfully!', 'success');
+          if (json.warning) setTimeout(()=>showAlert(json.warning,'warning'),2000);
+          document.getElementById('product_id').value    = '';
+          document.getElementById('quantity_sold').value = '';
+          document.getElementById('sale_price').value    = '';
+          document.getElementById('notes').value         = '';
+          document.getElementById('product_search').value = '';
+          document.getElementById('preview_revenue').textContent = 'Rs. 0';
+          document.getElementById('preview_profit').textContent  = 'Rs. 0';
+          document.getElementById('search_info').style.display = 'none';
+          loadProducts(); loadSales(); loadSummary();
+        } else {
+          showAlert(`❌ ${json.error}`, 'error');
+        }
+      } catch(e) { showAlert('❌ Cannot connect to server!', 'error'); }
+    }
+
+    async function loadSales() {
+      try {
+        const res  = await fetch(`${API}/api/sales`);
+        const json = await res.json();
+        const todaySales = json.data.filter(s => s.date === today);
+        if (!todaySales.length) {
+          document.getElementById('sales_container').innerHTML = `
+            <div class="empty-state">
+              <div class="icon">💰</div>
+              <p>No sales recorded today yet.</p>
+            </div>`;
+          return;
+        }
+        const rows = todaySales.map(s=>`
+          <tr>
+            <td><strong style="color:white;">${s.product_name}</strong></td>
+            <td>${s.quantity_sold} units</td>
+            <td>Rs. ${s.sale_price}</td>
+            <td class="revenue-cell">Rs. ${s.revenue}</td>
+            <td>${s.date}</td>
+          </tr>`).join('');
+        document.getElementById('sales_container').innerHTML = `
+          <table>
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Qty</th>
+                <th>Price/Unit</th>
+                <th>Revenue</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>`;
+      } catch(e) { console.error(e); }
+    }
+
+    async function loadSummary() {
+      try {
+        const res  = await fetch(`${API}/api/sales/summary`);
+        const json = await res.json();
+        if (json.success) {
+          const d = json.data;
+          document.getElementById('total_sales').textContent   = d.total_sales;
+          document.getElementById('total_revenue').textContent = `Rs. ${d.total_revenue}`;
+          document.getElementById('total_cost').textContent    = `Rs. ${d.total_cost}`;
+          document.getElementById('gross_profit').textContent  = `Rs. ${d.gross_profit}`;
+        }
+      } catch(e) { console.error(e); }
+    }
+
+    function showAlert(msg, type) {
+      const el = document.getElementById('alert_msg');
+      el.textContent = msg; el.className = `alert ${type}`;
+      el.style.display = 'block';
+      setTimeout(()=>el.style.display='none', 5000);
+    }
+
+    loadProducts(); loadSales(); loadSummary();
+  </script>
+<script>
+  // ── Auth Guard ──────────────────────────
+  (function checkAuth() {
+    const userStr = localStorage.getItem('user');
+    if (!userStr) {
+      window.location.href = 'login.html';
+      return;
+    }
+
+    try {
+      const user = JSON.parse(userStr);
+      if (!user || !user.role) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      // ── Role-based page access ──
+      const page        = window.location.pathname
+                            .split('/').pop();
+      const staffOnly   = ['index.html','sales.html',
+                            'billing.html'];
+      const managerUp   = ['products.html',
+                            'expenses.html'];
+      const ownerOnly   = ['reports.html'];
+
+      if (ownerOnly.includes(page) &&
+          user.role !== 'owner') {
+        alert('⛔ This page is for owners only!');
+        window.location.href = 'index.html';
+        return;
+      }
+
+      if (managerUp.includes(page) &&
+          user.role === 'staff') {
+        alert('⛔ You do not have access to this page!');
+        window.location.href = 'index.html';
+        return;
+      }
+
+      // ── Show user info in navbar ──
+      const nav = document.querySelector('.nav-links');
+      if (nav) {
+        const roleBadge =
+          user.role === 'owner'   ? '👑' :
+          user.role === 'manager' ? '🔧' : '👤';
+
+        const roleColor =
+          user.role === 'owner'   ? '#fbbf24' :
+          user.role === 'manager' ? '#60a5fa' : '#a78bfa';
+
+        nav.insertAdjacentHTML('beforeend', `
+          <div style="display:flex;align-items:center;
+               gap:10px;margin-left:12px;padding-left:12px;
+               border-left:1px solid rgba(255,255,255,0.1);">
+            <div style="text-align:right;">
+              <div style="font-size:12px;font-weight:700;
+                   color:white;">
+                ${roleBadge} ${user.full_name}
+              </div>
+              <div style="font-size:10px;
+                   color:${roleColor};
+                   text-transform:uppercase;
+                   letter-spacing:0.5px;
+                   font-weight:600;">
+                ${user.role}
+              </div>
+            </div>
+            <button onclick="doLogout()" style="
+              padding:6px 14px;border-radius:8px;
+              background:rgba(239,68,68,0.15);
+              border:1px solid rgba(239,68,68,0.3);
+              color:#f87171;font-size:12px;
+              font-weight:700;cursor:pointer;
+              font-family:'Inter',sans-serif;
+              transition:all 0.2s;">
+              Logout
+            </button>
+          </div>`);
+      }
+
+    } catch(e) {
+      localStorage.clear();
+      window.location.href = 'login.html';
+    }
+  })();
+
+  async function doLogout() {
+    try {
+      const token = localStorage.getItem('token');
+      await fetch('http://localhost:5000/api/auth/logout', {
+        method : 'POST',
+        headers: { 'X-Auth-Token': token || '' }
+      });
+    } catch(e) {}
+    localStorage.clear();
+    window.location.href = 'login.html';
+  }
+</script>
+</body>
+</html>

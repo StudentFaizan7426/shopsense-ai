@@ -1,0 +1,182 @@
+PROJECT NAME: ShopSense AI
+(Micro-Business Profit Predictor
+with Generative AI Assistant)
+
+HOW TO RUN:
+1. Open VS Code terminal
+2. cd backend
+3. python app.py
+4. Open: http://localhost:5000/login.html
+5. Login: admin / shop@2026
+
+PROJECT FOLDER:
+C:\Users\PMLS\OneDrive\Documents\
+micro_business_predictor\
+
+TECH STACK:
+- Python 3.11.7 (Anaconda)
+- Flask + Flask-SQLAlchemy + Flask-CORS
+- SQLite database (data/shop.db)
+- scikit-learn (3 ML models)
+- Groq API (llama-3.3-70b-versatile)
+- Chart.js + Apache ECharts
+- jsPDF (PDF generation)
+- bcrypt (password hashing)
+- Token-based authentication
+
+FOLDER STRUCTURE:
+backend/
+  app.py           → Main Flask entry point
+  database.py      → SQLAlchemy setup
+  models.py        → All DB table definitions
+  ml_models.py     → 3 ML prediction models
+  .env             → GROQ_API_KEY stored here
+  routes/
+    products.py    → Product CRUD
+    sales.py       → Sales + expenses + reports
+    charts.py      → Chart data endpoints
+    predictions.py → ML model endpoints
+    chatbot.py     → Groq AI integration
+    billing.py     → Cart/billing system
+    auth.py        → Token-based login system
+
+data/
+  shop.db          → SQLite database file
+
+frontend/          → Served through Flask
+  login.html       → Login page (entry point)
+  index.html       → Main dashboard
+  products.html    → Product management
+  sales.html       → Daily sales recording
+  expenses.html    → Expense tracking
+  reports.html     → PDF report download
+  billing.html     → Cart/billing system
+  admin.html       → Staff management
+  error-handler.js → Global JS error handler
+
+DATABASE TABLES (7):
+1. products      → id, name, category,
+                   purchase_price,
+                   selling_price,
+                   current_stock, reorder_level
+2. daily_sales   → id, product_id(FK),
+                   quantity_sold, sale_price,
+                   revenue, date, notes
+3. expenses      → id, category, amount,
+                   date, description
+4. stock_updates → id, product_id(FK),
+                   quantity_added,
+                   supplier_price, date
+5. bills         → id, bill_number,
+                   total_amount, total_cost,
+                   total_profit, date, notes
+6. bill_items    → id, bill_id(FK),
+                   product_id(FK), quantity,
+                   unit_price, total_price
+7. users         → id, username, password_hash,
+                   full_name, role, is_active,
+                   last_login
+
+USER ROLES:
+owner   → Full access to all 7 pages
+manager → Products, Sales, Expenses,
+          Billing, Dashboard
+staff   → Dashboard, Sales, Billing only
+
+ALL API ENDPOINTS:
+GET/POST         /api/products
+PUT/DELETE       /api/products/<id>
+GET/POST         /api/sales
+GET              /api/sales/summary
+GET              /api/sales/period-summary
+GET/POST         /api/expenses
+GET              /api/charts/profit-trend
+GET              /api/charts/top-products
+GET              /api/charts/expenses-breakdown
+GET              /api/predictions/all
+GET              /api/predictions/profit
+GET              /api/predictions/demand
+GET              /api/predictions/stock
+POST             /api/chatbot
+GET              /api/chatbot/suggestions
+GET              /api/billing/bills
+POST             /api/billing/checkout
+DELETE           /api/billing/bills/<id>
+POST             /api/auth/login
+POST             /api/auth/logout
+GET              /api/auth/me
+GET/POST         /api/auth/users
+PUT/DELETE       /api/auth/users/<id>
+GET              /api/health
+GET              /api/reports/generate
+
+AUTHENTICATION:
+Type    : Token-based (X-Auth-Token header)
+Storage : localStorage in browser
+Library : bcrypt for password hashing
+Note    : Tokens reset on server restart
+          Users must re-login after restart
+
+DEFAULT ACCOUNT:
+Username : admin
+Password : shop@2026
+Role     : owner
+
+COMPLETED FEATURES:
+✅ Flask REST API (15+ endpoints)
+✅ SQLite database (7 tables)
+✅ Glassmorphism dark UI (all pages)
+✅ Chart.js line + bar charts
+✅ ECharts 3D rose expense chart
+✅ 3 supervised ML models
+✅ Groq AI chatbot
+✅ Weekly/monthly analytics
+✅ PDF report generation (jsPDF)
+✅ Cart/billing system
+✅ Receipt PDF download
+✅ Token-based login system
+✅ 3-role access control
+✅ Staff management admin panel
+✅ Product edit/restock/delete modals
+✅ Smart product search
+✅ Low stock alerts
+✅ Error handler (error-handler.js)
+✅ Global toast notifications
+✅ Connection monitor
+
+PENDING / TO DO:
+⬜ Fix app.py error handler indentation
+   bug (handlers nested wrongly inside
+   not_found() function — dedent needed)
+⬜ Review Copilot bugs #2 through #5
+⬜ Email/SMS low stock alert
+⬜ Mobile responsive design
+⬜ Contact section page
+⬜ Cloud deployment
+
+IMPORTANT NOTES:
+1. Frontend must be accessed via Flask URL:
+   http://localhost:5000/pagename.html
+   NOT via file:// — CORS will block it!
+
+2. Tokens are stored in memory (dict)
+   in auth.py — they reset when server
+   restarts — users must re-login
+
+3. ML models need minimum 2 days of
+   sales data to give meaningful results
+
+4. Groq free tier limit:
+   1000 requests/day, 30/minute
+
+5. shop.db can be viewed visually using:
+   DB Browser for SQLite
+   https://sqlitebrowser.org/dl
+
+DEVELOPER PREFERENCES:
+- Step by step guidance preferred
+- Confirm before moving to next step
+- Simple everyday English only
+- Real world analogies for concepts
+- No technical jargon in UI text
+- Always explain WHY behind decisions

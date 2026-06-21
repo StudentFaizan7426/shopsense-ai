@@ -1,0 +1,16 @@
+# Python compiled files
+*.pyc
+*.pyo
+__pycache__/
+
+# Database (local data stays local)
+data/shop.db
+
+# Secret keys (never upload!)
+backend/.env
+
+# VS Code settings
+.vscode/
+
+# Antigravity settings
+.antigravity/

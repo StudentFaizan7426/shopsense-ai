@@ -1,0 +1,10 @@
+flask
+flask-sqlalchemy
+flask-cors
+scikit-learn
+pandas
+numpy
+groq
+python-dotenv
+bcrypt
+gunicorn
